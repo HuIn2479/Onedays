@@ -1,4 +1,4 @@
-const CACHE_NAME = "onedays-v7"; // extras features
+const CACHE_NAME = "onedays-v14"; // config refactor grouped
 const ASSETS = [
   "/",
   "/index.html",
@@ -10,6 +10,7 @@ const ASSETS = [
   "/js/theme.js",
   "/js/reveal.js",
   "/js/config.js",
+  "/js/announcement.js",
   "/js/loader.js",
   "/js/extras.js",
   "/js/hitokoto.js",

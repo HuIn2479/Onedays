@@ -1,9 +1,12 @@
 // 额外动画 & 特性
 (()=>{const cfg=window.__APP_CONFIG__||{};const root=document.documentElement;const body=document.body;const accents=cfg.accents||[];
-// 滚动进度条
-if(cfg.enableScrollProgress){const bar=document.createElement('div');bar.className='scroll-progress';document.body.appendChild(bar);const update=()=>{const h=document.documentElement;const max=h.scrollHeight-h.clientHeight;bar.style.width=(max? (h.scrollTop/max)*100:0)+'%';};['scroll','resize'].forEach(ev=>window.addEventListener(ev,update,{passive:true}));update();}
+const adaptive=cfg.adaptivePerformance;const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;let lowPower=false;try{lowPower= matchMedia('(prefers-reduced-data: reduce)').matches;}catch(_){}
+// 自适应：低性能时关闭昂贵特效
+const allowGradient = cfg.enableBgGradient && !reducedMotion && !lowPower;
+// 滚动进度条 (rAF 节流 + 可见性暂停)
+if(cfg.enableScrollProgress){const bar=document.createElement('div');bar.className='scroll-progress';document.body.appendChild(bar);let ticking=false;const calc=()=>{const h=document.documentElement;const max=h.scrollHeight-h.clientHeight;bar.style.width=(max?(h.scrollTop/max)*100:0)+'%';ticking=false;};const onScroll=()=>{if(document.hidden) return; if(!ticking){ticking=true;requestAnimationFrame(calc);} };['scroll','resize'].forEach(ev=>window.addEventListener(ev,onScroll,{passive:true}));calc();document.addEventListener('visibilitychange',()=>{if(!document.hidden) calc();});}
 // 背景渐变
-if(cfg.enableBgGradient){body.classList.add('gradient-active');body.style.setProperty('--grad-speed',(cfg.gradientAnimationSpeed||40)+'s');}
+if(allowGradient){body.classList.add('gradient-active');body.style.setProperty('--grad-speed',(cfg.gradientAnimationSpeed||40)+'s');}
 // Accent 面板
 const themeBtn=document.getElementById('themeToggle');if(cfg.enableAccentPanel && themeBtn && accents.length>1){let pressTimer=null,panel=null;const showPanel=()=>{if(panel) return;panel=document.createElement('div');panel.className='accent-panel';accents.forEach((c,i)=>{const b=document.createElement('button');b.className='accent-dot';b.style.background=c;b.title=c;b.addEventListener('click',()=>{try{root.style.setProperty('--accent',c);localStorage.setItem('onedays-accent',i);document.querySelectorAll('.accent-dot').forEach(d=>d.classList.remove('active'));b.classList.add('active');}catch(e){};});if(getComputedStyle(root).getPropertyValue('--accent').trim()===c) b.classList.add('active');panel.appendChild(b);});document.body.appendChild(panel);setTimeout(()=>{document.addEventListener('click',outside,true);},0);};const hidePanel=()=>{panel&&(panel.remove(),panel=null,document.removeEventListener('click',outside,true));};const outside=e=>{if(panel && !panel.contains(e.target) && e.target!==themeBtn) hidePanel();};const startPress=()=>{pressTimer=setTimeout(showPanel,500);};const clearPress=()=>{clearTimeout(pressTimer);};themeBtn.addEventListener('mousedown',startPress);themeBtn.addEventListener('touchstart',startPress,{passive:true});['mouseup','mouseleave','touchend','touchcancel','click'].forEach(ev=>themeBtn.addEventListener(ev,clearPress));}}
 )();

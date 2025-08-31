@@ -32,6 +32,37 @@ body {
   min-height: 100vh;
   transition: background var(--transition), color var(--transition);
 }
+/* 公告条 */
+.announcement{position:sticky;top:0;z-index:500;background:linear-gradient(90deg,var(--bg-alt),var(--bg));backdrop-filter:blur(6px);border-bottom:1px solid var(--border);font-size:.66rem;line-height:1.25;color:var(--fg-soft);overflow:hidden;display:flex;align-items:center;min-height:30px;padding:0 .85rem;gap:.7rem;--ann-accent:var(--accent);}
+.announcement .ann-icon{font-size:.9rem;filter:drop-shadow(0 1px 2px rgba(0,0,0,.15));opacity:.9;}
+.announcement .ann-close{appearance:none;border:none;background:transparent;color:var(--fg-mute);font:inherit;font-size:.85rem;cursor:pointer;line-height:1;padding:.25rem .4rem;margin:0;border-radius:4px;transition:var(--transition);}
+.announcement .ann-close:hover{background:var(--bg-alt);color:var(--accent);} 
+.announcement .ann-close:active{transform:scale(.9);} 
+.announcement .ann-inner{flex:1;overflow:hidden;white-space:nowrap;position:relative;mask:linear-gradient(90deg,transparent 0, #000 8%, #000 92%, transparent 100%);}
+.announcement .ann-text{display:inline-block;will-change:transform;padding-right:3rem;letter-spacing:.05em;}
+.announcement .ann-text.animate{animation:ann-scroll var(--ann-duration,30s) linear infinite;}
+.announcement .ann-text.fast{animation-duration:calc(var(--ann-duration,30s)/3);} 
+.announcement .ann-text.paused{animation-play-state:paused;}
+.announcement.ann-hide{animation:ann-hide .4s ease forwards;}
+/* 卡片模式 */
+.announcement.announcement-card{position:fixed;top:1rem;left:50%;transform:translateX(-50%);width:min(560px,92%);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 6px 22px -6px rgba(0,0,0,.18);background:linear-gradient(135deg,var(--bg-alt),var(--bg));padding:.65rem .95rem;backdrop-filter:blur(10px);font-size:.7rem;gap:.75rem;min-height:auto;}
+.announcement.announcement-card .ann-inner{mask:none;}
+.announcement.announcement-card .ann-text{padding-right:0;opacity:0;transition:opacity .6s ease;}
+.announcement.announcement-card .ann-text.fade{opacity:1;}
+.announcement.announcement-card .ann-close{background:var(--bg);border:1px solid var(--border);}
+.announcement.announcement-card .ann-close:hover{background:var(--accent);color:#fff;border-color:var(--accent);} 
+/* 双缓冲容器 */
+.announcement.announcement-card .ann-stack{position:relative;flex:1;min-height:1.1em;}
+.announcement.announcement-card .ann-stack .ann-pane{position:absolute;left:0;top:0;width:100%;opacity:0;transform:translateY(6px);transition:opacity var(--ann-trans,500ms) ease,transform var(--ann-trans,500ms) ease;}
+.announcement.announcement-card .ann-stack .ann-pane.active{opacity:1;transform:translateY(0);} 
+/* 进度条 */
+.announcement.announcement-card .ann-progress{position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent-hover));opacity:.55;overflow:hidden;border-bottom-left-radius:inherit;border-bottom-right-radius:inherit;}
+@keyframes ann-progress{from{transform:translateX(-100%);}to{transform:translateX(0);} }
+.announcement.announcement-card .ann-progress{animation:ann-progress var(--ann-progress-dur,4800ms) linear forwards;}
+@media (max-width:600px){.announcement.announcement-card{top:.65rem;padding:.55rem .7rem;font-size:.66rem;}}
+@keyframes ann-scroll{0%{transform:translateX(0);}100%{transform:translateX(calc(-1 * var(--ann-distance)));}}
+@keyframes ann-hide{to{opacity:0;transform:translateY(-6px);}}
+@media (max-width:600px){.announcement{font-size:.6rem;padding:0 .55rem;gap:.5rem;}.announcement .ann-text{padding-right:2rem;}}
 .main {
   flex: 1;
   display: flex;

@@ -17,6 +17,11 @@
     <link rel="stylesheet" href="/css/maomao.css" />
   </head>
   <body>
+    <div id="announcement" class="announcement" aria-label="站点公告" hidden>
+      <div class="ann-icon" aria-hidden="true"></div>
+      <div class="ann-inner"><span class="ann-text"></span></div>
+      <button class="ann-close" aria-label="关闭公告" title="关闭" hidden>×</button>
+    </div>
     <main class="main" aria-label="主页">
       <div class="hero reveal">
         <h1 class="title" id="siteTitle">忆窝</h1>
@@ -25,12 +30,7 @@
           <span id="timeDate">加载中…</span><span id="times">加载中…</span>
         </p>
         <div class="actions">
-          <button
-            id="themeToggle"
-            class="btn"
-            aria-label="切换主题"
-            title="切换浅/深色"
-          >
+          <button id="themeToggle" class="btn" aria-label="切换主题" title="切换浅/深色">
             🌓
           </button>
         </div>
@@ -51,22 +51,21 @@
     <footer class="footer reveal">
       <p class="reveal-item">© <span id="year"></span> 〇Enshō🌸</p>
       <p id="hitokoto" class="reveal-item skeleton">
-        <a href="#" id="hitokoto_text" rel="noopener" title="一言"
-          >加载中..🍀</a
-        >
+        <a href="#" id="hitokoto_text" rel="noopener" title="一言">加载中..🍀</a>
       </p>
     </footer>
 
     <!-- 外部 API -->
     <!-- 本站脚本 -->
     <script src="/js/config.js" defer></script>
+    <script src="/js/announcement.js" defer></script>
     <script src="/js/reveal.js" defer></script>
     <script src="/js/hitokoto.js" defer></script>
     <script src="/js/time.js" defer></script>
     <script src="/js/maomao.js" defer></script>
     <script src="/js/jinzhifuzhi.js" defer></script>
     <script src="/js/theme.js" defer></script>
-  <script src="/js/extras.js" defer></script>
+    <script src="/js/extras.js" defer></script>
     <script src="/js/enhance.js" defer></script>
     <script src="/js/loader.js" defer></script>
     <script src="/js/app-init.js" defer></script>
