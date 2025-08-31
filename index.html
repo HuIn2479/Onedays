@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <meta name="theme-color" content="#f33" />
+    <title>OneDay'S Home</title>
+    <!-- Favicon & PWA -->
+    <link rel="icon" href="/image/logo/index.jpg" />
+    <link rel="apple-touch-icon" href="/image/logo/index.jpg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- 预加载与性能优化 -->
+    <link rel="preload" href="/css/index.css" as="style" />
+    <link rel="stylesheet" href="/css/index.css" />
+    <link rel="preconnect" href="https://v1.hitokoto.cn" crossorigin />
+    <link rel="stylesheet" href="/css/maomao.css" />
+  </head>
+  <body>
+    <main class="main" aria-label="主页">
+      <div class="hero reveal">
+        <h1 class="title" id="siteTitle">忆窝</h1>
+        <h2 class="subtitle" id="siteSubtitle">One Day.</h2>
+        <p class="runtime skeleton">
+          <span id="timeDate">加载中…</span><span id="times">加载中…</span>
+        </p>
+        <div class="actions">
+          <button
+            id="themeToggle"
+            class="btn"
+            aria-label="切换主题"
+            title="切换浅/深色"
+          >
+            🌓
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- 开屏动画 -->
+    <div id="splash" class="splash" aria-label="加载中">
+      <div class="splash-inner">
+        <div class="splash-logo">🌸</div>
+        <div class="splash-title">Loading...</div>
+        <div class="splash-bar"><span></span></div>
+      </div>
+    </div>
+
+    <div id="maomao" aria-label="小猫"></div>
+
+    <footer class="footer reveal">
+      <p class="reveal-item">© <span id="year"></span> 〇Enshō🌸</p>
+      <p id="hitokoto" class="reveal-item skeleton">
+        <a href="#" id="hitokoto_text" rel="noopener" title="一言"
+          >加载中..🍀</a
+        >
+      </p>
+    </footer>
+
+    <!-- 外部 API -->
+    <!-- 本站脚本 -->
+    <script src="/js/config.js" defer></script>
+    <script src="/js/reveal.js" defer></script>
+    <script src="/js/hitokoto.js" defer></script>
+    <script src="/js/time.js" defer></script>
+    <script src="/js/maomao.js" defer></script>
+    <script src="/js/jinzhifuzhi.js" defer></script>
+    <script src="/js/theme.js" defer></script>
+  <script src="/js/extras.js" defer></script>
+    <script src="/js/enhance.js" defer></script>
+    <script src="/js/loader.js" defer></script>
+    <script src="/js/app-init.js" defer></script>
+  </body>
+</html>

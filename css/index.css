@@ -1,0 +1,192 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html,
+body {
+  height: 100%;
+}
+:root {
+  font-size: clamp(14px, 1.1vw + 0.4vh, 18px);
+}
+:root { /* 更柔和 / 极简配色 */
+  --bg:#f9f9f9; --bg-alt:#ffffff; --fg:#1f1f23; --fg-soft:#5a5d62; --fg-mute:#8d9095;
+  --accent:hsl(350 82% 54%); --accent-hover:hsl(350 82% 47%);
+  --border:rgba(0 0 0 / .08); --radius:10px; --transition:.28s cubic-bezier(.4,0,.2,1);
+  --shadow:none; --focus:0 0 0 3px hsl(350 90% 60% / .35);
+}
+[data-theme="dark"] { /* 深色对比降低眩光 */
+  --bg:#0e1013; --bg-alt:#16191d; --fg:#e5e7eb; --fg-soft:#b8bcc2; --fg-mute:#7b818a;
+  --accent:hsl(350 85% 62%); --accent-hover:hsl(350 85% 55%);
+  --border:rgba(255 255 255 / .09); --shadow:none; --focus:0 0 0 3px hsl(350 85% 55% / .4);
+}
+body {
+  font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: background var(--transition), color var(--transition);
+}
+.main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem;
+}
+.hero {text-align:center;max-width:780px;width:100%;padding:0 1rem;animation:fadeIn .7s ease both;}
+.title {font-size:clamp(3rem,11.5vw,5.2rem);font-weight:600;letter-spacing:.04em;color:var(--fg);position:relative;}
+.title::after{content:"";display:block;width:64px;height:2px;margin:.9rem auto 0;background:var(--accent);border-radius:2px;}
+.subtitle {margin-top:.2rem;font-size:clamp(1.05rem,2.4vw,1.55rem);font-weight:400;color:var(--fg-soft);}
+.runtime {margin-top:.9rem;font-size:.78rem;color:var(--fg-mute);letter-spacing:.06em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
+.actions {margin-top:1.2rem;display:flex;gap:.65rem;justify-content:center;}
+.btn {appearance:none;border:none;background:var(--accent);color:#fff;padding:.6rem 1rem;border-radius:999px;font:600 .75rem/1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:.35rem;transition:background var(--transition),transform .25s;letter-spacing:.08em;min-width:3.2rem;justify-content:center;}
+.btn:hover {background:var(--accent-hover);}
+.btn:active {transform:scale(.95);} 
+.btn:focus-visible {outline:none;box-shadow:var(--focus);} 
+#maomao {
+  cursor: pointer;
+  transition: transform 0.6s ease;
+}
+#maomao:hover {transform:translateY(-4px) scale(1.03);}
+.footer {background:var(--bg-alt);color:var(--fg-mute);text-align:center;padding:1.15rem .9rem .95rem;font-size:.68rem;line-height:1.4;border-top:1px solid var(--border);}
+.footer a {
+  color: var(--fg-soft);
+  text-decoration: none;
+  position: relative;
+}
+.footer a:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: var(--transition);
+}
+.footer a:hover:after {
+  transform: scaleX(1);
+}
+#hitokoto {max-width:620px;margin:.3rem auto 0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:.7rem;color:var(--fg-soft);}
+@media (max-width:600px){.title{letter-spacing:.02em;} .main{padding:1.6rem 1.1rem;} .actions{margin-top:.9rem;} .btn{padding:.55rem .9rem;font-size:.7rem;} }
+@media (max-width:360px){.title{font-size:clamp(2.3rem,10.5vw,3.4rem);} .subtitle{font-size:clamp(.95rem,4vw,1.15rem);} .main{padding:1.1rem .85rem;} .actions{gap:.5rem;} }
+@media (max-height: 520px) and (orientation: landscape) {
+  .main {
+    align-items: flex-start;
+    padding: 1rem 2rem;
+  }
+  .hero {
+    padding-top: 1rem;
+  }
+  .title {
+    font-size: clamp(2.2rem, 10vh, 4rem);
+  }
+  #maomao {
+    display: none;
+  } /* 避免极矮视口遮挡 */
+}
+@media (min-width:1400px){.hero{max-width:900px;} .title{letter-spacing:.05em;} .main{padding:3rem;} }
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* 滚动淡入 */
+.reveal {
+  --stagger: 90ms;
+}
+.reveal-item {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.7s var(--transition), transform 0.7s var(--transition);
+}
+.reveal-in .reveal-item {
+  opacity: 1;
+  transform: none;
+}
+.reveal-in .reveal-item:nth-child(2) {
+  transition-delay: var(--stagger);
+}
+.reveal-in .reveal-item:nth-child(3) {
+  transition-delay: calc(var(--stagger) * 2);
+}
+
+/* 骨架屏 */
+.skeleton {
+  position: relative;
+  color: transparent !important;
+}
+.skeleton > * {
+  visibility: hidden;
+}
+.skeleton::after {content:"";position:absolute;inset:0;border-radius:4px;background:linear-gradient(90deg,rgba(0 0 0 / .04),rgba(0 0 0 / .07),rgba(0 0 0 / .04));animation:skeleton 1.05s infinite;}
+[data-theme="dark"] .skeleton::after {background:linear-gradient(90deg,rgba(255 255 255 / .08),rgba(255 255 255 / .14),rgba(255 255 255 / .08));}
+@keyframes skeleton {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+.fade-in {
+  animation: contentFade 0.5s ease forwards;
+}
+@keyframes contentFade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 开屏动画 */
+.splash {position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:999;transition:opacity .5s ease .05s,visibility 0s linear .55s;}
+.splash.fade-out {
+  opacity: 0;
+  visibility: hidden;
+}
+.splash-inner {text-align:center;animation:fadeIn .5s ease both;max-width:220px;width:100%;padding:1.65rem 1.25rem;}
+.splash-logo {font-size:2.4rem;filter:none;animation:float 2.8s ease-in-out infinite;}
+.splash-title {margin-top:.6rem;font-size:.7rem;letter-spacing:.18em;color:var(--fg-mute);text-transform:uppercase;}
+.splash-bar {margin-top:1rem;height:3px;background:var(--border);border-radius:2px;overflow:hidden;position:relative;}
+.splash-bar span {position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent);transition:width .28s ease;}
+/* 滚动进度条 */
+.scroll-progress{position:fixed;left:0;top:0;height:3px;background:var(--accent);width:0;z-index:1000;transition:width .15s linear;}
+/* 背景渐变 (可切换) */
+body.gradient-active{background:radial-gradient(circle at 30% 30%,var(--bg-alt),var(--bg) 60%) fixed;animation:gradMove var(--grad-speed,40s) linear infinite;}
+@keyframes gradMove{0%{background-position:0 0;}100%{background-position:200% 200%;}}
+/* Accent 选择面板 */
+.accent-panel{position:fixed;bottom:1rem;right:1rem;background:var(--bg-alt);border:1px solid var(--border);padding:.6rem .7rem .55rem;border-radius:var(--radius);display:flex;gap:.5rem;box-shadow:0 4px 14px -4px rgba(0,0,0,.15);backdrop-filter:blur(6px);animation:fadeIn .25s ease;}
+.accent-dot{width:22px;height:22px;border-radius:50%;cursor:pointer;position:relative;outline:none;border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;}
+.accent-dot:after{content:"";position:absolute;inset:3px;border:2px solid #fff;border-radius:inherit;opacity:0;transform:scale(.6);transition:.25s;mix-blend-mode:overlay;}
+.accent-dot.active:after{opacity:1;transform:scale(1);} 
+.accent-panel button{background:none;border:none;padding:0;}
+@media (max-width:600px){.accent-panel{bottom:.75rem;right:.75rem;}}
+@keyframes float {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}

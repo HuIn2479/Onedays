@@ -1,0 +1,8 @@
+# http://* https://onedays.example.com 301!
+
+# 根路径别名示例
+/home / 301
+/index / 301
+
+# 404 回退
+/* /error/40x.html 404

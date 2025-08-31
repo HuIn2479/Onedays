@@ -1,0 +1,16 @@
+#maomao {
+  position: fixed;
+  bottom: 40px;
+  right: -5px;
+  width: 57px;
+  height: 70px;
+  background-image: url(../image/maomao/maoamo.svg);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  transition: background 0.3s;
+}
+
+#maomao:hover {
+  background-position: 60px 50%;
+}
