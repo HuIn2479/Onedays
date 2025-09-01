@@ -8,6 +8,10 @@
     const iconEl = box.querySelector('.ann-icon');
     const closeBtn = box.querySelector('.ann-close');
     const msgs = (cfg.announcementMessages || []).filter(Boolean);
+    // 若 update-check / 其他脚本在本脚本前收集了待添加消息
+    if (Array.isArray(window.__ANN_PENDING) && window.__ANN_PENDING.length) {
+        msgs.push(...window.__ANN_PENDING.splice(0));
+    }
     if (!msgs.length) { box.remove(); return; }
 
     const storeKey = cfg.announcementDismissKey || 'ann-v1';
@@ -99,9 +103,20 @@
         }
     } else {
         const sep = ' \u2022 ';
-        const one = msgs.join(sep);
-        const full = one + sep + one + sep; // 末尾再补一个分隔避免跳闪
-        textEl.textContent = full;
+        function rebuildMarquee() {
+            const one = msgs.join(sep);
+            const full = one + sep + one + sep; // 末尾再补一个分隔避免跳闪
+            textEl.textContent = full;
+        }
+        rebuildMarquee();
+        // 动态添加接口 (bar)
+        window.__announceAdd = function (m, opts) {
+            if (!m) return;
+            if (opts && opts.priority === 'front') msgs.unshift(m); else msgs.push(m);
+            rebuildMarquee();
+            // 重新计算动画参数
+            initAnim();
+        };
     }
     box.hidden = false;
 
@@ -131,4 +146,13 @@
     }
 
     initAnim();
+
+    // 卡片模式动态添加接口
+    if (styleMode === 'card') {
+        window.__announceAdd = function (m, opts) {
+            if (!m) return;
+            if (opts && opts.priority === 'front') msgs.unshift(m); else msgs.push(m);
+            // 新消息自然出现在后续循环中，无需立即重排
+        };
+    }
 })();

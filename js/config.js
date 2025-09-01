@@ -1,6 +1,7 @@
-// 全局配置（分组 + 兼容旧平铺字段）
+// 全局配置
 (function () {
   const config = {
+    version: "v0.8.3",
     meta: {
       launchDate: "2021-02-27T00:00:00+08:00",
       title: "忆窝",
@@ -50,6 +51,16 @@
     },
     performance: {
       adaptive: true, // 自适应关闭部分特效
+      idleAutoRelease: true,          // 空闲自动释放内存
+      idleReleaseDelay: 60000,        // 一级释放延迟 (ms)
+      idleDeepReleaseDelay: 180000,   // 深度释放额外延迟 (ms) 0 关闭
+      idleAutoRestore: true,          // 交互自动恢复
+    },
+    update: {
+      enable: true,              // 启用版本检测
+      checkInterval: 300000,     // 轮询间隔(ms)
+      notifyDelay: 0,            // 检测到新版本后展示延迟
+      source: "/js/config.js",   // 提取 version 的文件
     },
     easter: {
       konami: true,            // Konami 代码触发彩蛋
@@ -94,6 +105,17 @@
     enableAnnouncementClose: config.announcement.closeButton,
     // performance
     adaptivePerformance: config.performance.adaptive,
+    enableIdleAutoRelease: config.performance.idleAutoRelease,
+    idleReleaseDelay: config.performance.idleReleaseDelay,
+    idleDeepReleaseDelay: config.performance.idleDeepReleaseDelay,
+    enableIdleAutoRestore: config.performance.idleAutoRestore,
+    // update
+    enableUpdateCheck: config.update.enable,
+    updateCheckInterval: config.update.checkInterval,
+    updateNotifyDelay: config.update.notifyDelay,
+    updateSource: config.update.source,
+    // version flat
+    version: config.version,
     // easter
     enableKonami: config.easter.konami,
     enableTitleClicks: config.easter.titleClicks,

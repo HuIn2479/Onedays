@@ -1,6 +1,7 @@
 // 轻量随机位置调整 (不依赖 jQuery)
 const rand = (a, b = a) => Math.floor(Math.random() * (b - a + 1)) + a;
 let lastMove = 0;
+let globalCatEl = null; // 缓存引用，便于清理
 function repositionCat() {
   const el = document.getElementById("maomao");
   if (!el) return;
@@ -16,9 +17,9 @@ function repositionCat() {
 function initMaomao() {
   const el = document.getElementById("maomao");
   if (!el) return false;
-  // 只初始化一次
-  if (el.__maomaoInited) return true;
+  if (el.__maomaoInited) return true; // 只初始化一次
   el.__maomaoInited = true;
+  globalCatEl = el;
   const cfg = window.__APP_CONFIG__ || {};
   const curTrans = getComputedStyle(el).transition || "";
   if (!/bottom|right/.test(curTrans)) {
@@ -27,16 +28,12 @@ function initMaomao() {
       "bottom .8s cubic-bezier(.4,0,.2,1), right .8s cubic-bezier(.4,0,.2,1)";
   }
   repositionCat();
-  ["mouseleave", "click", "touchend", "mouseenter"].forEach((ev) =>
-    el.addEventListener(ev, repositionCat, { passive: true })
-  );
-  window.addEventListener("keydown", (e) => {
-    if (e.code === "Space" && !e.repeat) repositionCat();
-  });
-  // 安全：5 秒后还没再次移动则强制一次（避免阻塞或首帧未执行）
-  setTimeout(() => {
-    if (lastMove === 0) repositionCat();
-  }, 5000);
+  const hoverEvents = ["mouseleave", "click", "touchend", "mouseenter"];
+  hoverEvents.forEach((ev) => el.addEventListener(ev, repositionCat, { passive: true }));
+  const keyListener = (e) => { if (e.code === "Space" && !e.repeat) repositionCat(); };
+  window.addEventListener("keydown", keyListener);
+  // 安全兜底
+  const safetyTimer = setTimeout(() => { if (lastMove === 0) repositionCat(); }, 5000);
 
   // === 定时自动漂移 ===
   let autoTimer = null;
@@ -44,23 +41,39 @@ function initMaomao() {
   function schedule() {
     if (!base) return; // disabled
     clearTimeout(autoTimer);
-    // 随机浮动 70%~140% 间隔，更自然
-    const next = base * (0.7 + Math.random() * 0.7);
-    autoTimer = setTimeout(() => {
-      repositionCat();
-      schedule();
-    }, next);
+    const next = base * (0.7 + Math.random() * 0.7); // 自然浮动
+    autoTimer = setTimeout(() => { repositionCat(); schedule(); }, next);
+    el.__mmAutoTimer = autoTimer;
   }
   if (base > 0) {
     schedule();
-    // 交互后重新计时
-    ["click", "mousemove", "touchstart"].forEach((ev) =>
-      window.addEventListener(ev, () => base && schedule(), { passive: true })
-    );
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) clearTimeout(autoTimer);
-      else schedule();
-    });
+    const resetEvents = ["click", "mousemove", "touchstart"];
+    const resetHandler = () => base && schedule();
+    resetEvents.forEach((ev) => window.addEventListener(ev, resetHandler, { passive: true }));
+    const visListener = () => { if (document.hidden) clearTimeout(autoTimer); else schedule(); };
+    document.addEventListener("visibilitychange", visListener);
+    el.__mmResetEvents = resetEvents;
+    el.__mmResetHandler = resetHandler;
+    el.__mmVisListener = visListener;
+  }
+
+  // 暴露清理函数
+  if (!window.detachMaomao) {
+    window.detachMaomao = function () {
+      if (!globalCatEl) return;
+      try {
+        hoverEvents.forEach((ev) => globalCatEl.removeEventListener(ev, repositionCat));
+        window.removeEventListener("keydown", keyListener);
+        clearTimeout(safetyTimer);
+        if (globalCatEl.__mmAutoTimer) clearTimeout(globalCatEl.__mmAutoTimer);
+        if (globalCatEl.__mmResetEvents && globalCatEl.__mmResetHandler) {
+          globalCatEl.__mmResetEvents.forEach((ev) => window.removeEventListener(ev, globalCatEl.__mmResetHandler));
+        }
+        if (globalCatEl.__mmVisListener) document.removeEventListener("visibilitychange", globalCatEl.__mmVisListener);
+      } catch (_) { }
+      globalCatEl.__maomaoInited = false;
+      globalCatEl = null;
+    };
   }
   return true;
 }

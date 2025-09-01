@@ -1,6 +1,8 @@
 // 额外动画 & 特性
 (function () {
     const cfg = window.__APP_CONFIG__ || {};
+    // 统一注册清理函数，便于后续释放内存 (非关键特效)
+    let cleanups = [];
     const root = document.documentElement;
     const body = document.body;
     const accents = cfg.accents || [];
@@ -34,9 +36,13 @@
         ["scroll", "resize"].forEach((ev) =>
             window.addEventListener(ev, onScroll, { passive: true })
         );
+        const vis = () => { if (!document.hidden) calc(); };
+        document.addEventListener("visibilitychange", vis);
         calc();
-        document.addEventListener("visibilitychange", () => {
-            if (!document.hidden) calc();
+        cleanups.push(() => {
+            ["scroll", "resize"].forEach((ev) => window.removeEventListener(ev, onScroll));
+            document.removeEventListener("visibilitychange", vis);
+            bar.remove();
         });
     }
 
@@ -102,6 +108,14 @@
         ["mouseup", "mouseleave", "touchend", "touchcancel", "click"].forEach(
             (ev) => themeBtn.addEventListener(ev, clearPress)
         );
+        cleanups.push(() => {
+            themeBtn.removeEventListener("mousedown", startPress);
+            themeBtn.removeEventListener("touchstart", startPress);
+            ["mouseup", "mouseleave", "touchend", "touchcancel", "click"].forEach(
+                (ev) => themeBtn.removeEventListener(ev, clearPress)
+            );
+            hidePanel();
+        });
     }
 
     // 控制台欢迎 + ASCII
@@ -195,9 +209,8 @@
     if (cfg.enableConfetti) {
         const cat = document.getElementById("maomao");
         if (cat) {
-            cat.addEventListener("click", () => {
-                spawnConfetti(36);
-            });
+            const handler = () => spawnConfetti(36);
+            cat.addEventListener("click", handler);
             function spawnConfetti(n) {
                 const frag = document.createDocumentFragment();
                 const rect = cat.getBoundingClientRect();
@@ -226,14 +239,120 @@
                         el.style.opacity = "1";
                         el.style.transform += ` translate(${dx}px,${dy}px)`;
                         el.style.filter = "blur(.3px)";
-                        setTimeout(() => {
-                            el.style.opacity = "0";
-                        }, 900);
+                        setTimeout(() => { el.style.opacity = "0"; }, 900);
                         setTimeout(() => el.remove(), 1400);
                     });
                 }
                 document.body.appendChild(frag);
             }
+            cleanups.push(() => cat.removeEventListener("click", handler));
         }
     }
+
+    // 恢复功能：按需重建已释放的特效
+    if (!window.restoreFeatures) {
+        window.restoreFeatures = function (level = 1) {
+            if (!window.__MEM_RELEASED__) return; // 未释放无需恢复
+            const c = window.__APP_CONFIG__ || {};
+            // 重新启用背景渐变
+            if (level > 1 && c.enableBgGradient) {
+                body.classList.add('gradient-active');
+            }
+            // Scroll Progress
+            if (c.enableScrollProgress && !document.querySelector('.scroll-progress')) {
+                (function rebuildScroll() {
+                    const bar = document.createElement('div');
+                    bar.className = 'scroll-progress';
+                    document.body.appendChild(bar);
+                    let ticking = false;
+                    const calc = () => {
+                        const h = document.documentElement;
+                        const max = h.scrollHeight - h.clientHeight;
+                        bar.style.width = (max ? (h.scrollTop / max) * 100 : 0) + '%';
+                        ticking = false;
+                    };
+                    const onScroll = () => { if (document.hidden) return; if (!ticking) { ticking = true; requestAnimationFrame(calc); } };
+                    ['scroll','resize'].forEach(ev => window.addEventListener(ev,onScroll,{passive:true}));
+                    const vis = () => { if (!document.hidden) calc(); };
+                    document.addEventListener('visibilitychange', vis);
+                    calc();
+                    cleanups.push(() => { ['scroll','resize'].forEach(ev=>window.removeEventListener(ev,onScroll)); document.removeEventListener('visibilitychange', vis); bar.remove(); });
+                })();
+            }
+            // Accent panel listeners
+            const themeBtn = document.getElementById('themeToggle');
+            if (c.enableAccentPanel && themeBtn && (c.accents||[]).length>1 && !themeBtn.dataset.accentBound) {
+                themeBtn.dataset.accentBound = '1';
+                let pressTimer=null, panel=null;
+                const accents = c.accents || [];
+                const root = document.documentElement;
+                const showPanel = () => { if(panel) return; panel=document.createElement('div'); panel.className='accent-panel'; accents.forEach((col,i)=>{ const b=document.createElement('button'); b.className='accent-dot'; b.style.background=col; b.title=col; b.addEventListener('click',()=>{ try{ root.style.setProperty('--accent',col); localStorage.setItem('onedays-accent',i); document.querySelectorAll('.accent-dot').forEach(d=>d.classList.remove('active')); b.classList.add('active'); }catch(_){} }); if (getComputedStyle(root).getPropertyValue('--accent').trim()===col) b.classList.add('active'); panel.appendChild(b); }); document.body.appendChild(panel); setTimeout(()=>document.addEventListener('click', outside, true),0); };
+                const hidePanel = () => { if(panel){ panel.remove(); panel=null; document.removeEventListener('click', outside, true);} };
+                const outside = (e) => { if(panel && !panel.contains(e.target) && e.target!==themeBtn) hidePanel(); };
+                const startPress = () => { pressTimer=setTimeout(showPanel,500); };
+                const clearPress = () => { clearTimeout(pressTimer); };
+                themeBtn.addEventListener('mousedown', startPress);
+                themeBtn.addEventListener('touchstart', startPress, {passive:true});
+                ['mouseup','mouseleave','touchend','touchcancel','click'].forEach(ev=>themeBtn.addEventListener(ev, clearPress));
+                cleanups.push(()=>{ themeBtn.removeAttribute('data-accent-bound'); themeBtn.removeEventListener('mousedown', startPress); themeBtn.removeEventListener('touchstart', startPress); ['mouseup','mouseleave','touchend','touchcancel','click'].forEach(ev=>themeBtn.removeEventListener(ev, clearPress)); hidePanel(); });
+            }
+            // Confetti
+            if (c.enableConfetti) {
+                const cat = document.getElementById('maomao');
+                if (cat && !cat.dataset.confettiBound) {
+                    cat.dataset.confettiBound='1';
+                    const handler=()=>spawnConfetti(36);
+                    function spawnConfetti(n){ const frag=document.createDocumentFragment(); const rect=cat.getBoundingClientRect(); for(let i=0;i<n;i++){ const el=document.createElement('i'); const size=6+Math.random()*6; const hue=Math.floor(Math.random()*360); Object.assign(el.style,{position:'fixed',left:rect.left+rect.width/2+'px',top:rect.top+rect.height/2+'px',width:size+'px',height:size*0.45+'px',background:`hsl(${hue} 80% 60%)`,transform:`rotate(${Math.random()*180}deg)`,borderRadius:'2px',pointerEvents:'none',zIndex:9999,opacity:'0',transition:'transform 1.2s ease,opacity 1.2s ease'}); frag.appendChild(el); requestAnimationFrame(()=>{ const dx=(Math.random()-0.5)*260; const dy=200+Math.random()*180; el.style.opacity='1'; el.style.transform+=` translate(${dx}px,${dy}px)`; el.style.filter='blur(.3px)'; setTimeout(()=>{ el.style.opacity='0'; },900); setTimeout(()=>el.remove(),1400); }); } document.body.appendChild(frag);} cat.addEventListener('click', handler); cleanups.push(()=>{ cat.removeEventListener('click', handler); cat.removeAttribute('data-confetti-bound'); }); }
+            }
+            // 猫咪恢复
+            if (window.initMaomao && !document.hidden) { try { window.initMaomao(); } catch(_){} }
+            window.__MEM_RELEASED__ = 0;
+            if (console && console.log) console.log('[Onedays] features restored');
+        };
+    }
+    // 提供统一对外接口：释放非关键特效资源
+    if (!window.releaseMemory) {
+        window.releaseMemory = function (level = 1) {
+            while (cleanups.length) { try { (cleanups.pop())(); } catch (_) { } }
+            const ascii = document.getElementById('ascii-layer'); if (ascii) ascii.remove();
+            if (level > 1) body.classList.remove('gradient-active');
+            if (window.detachMaomao) try { window.detachMaomao(); } catch (_) { }
+            window.__MEM_RELEASED__ = level; window.__MEM_RELEASED_LEVEL__ = level;
+            if (console && console.log) console.log('[Onedays] memory released (level ' + level + ')');
+        };
+    }
+
+    // === 空闲自动释放 ===
+    (function idleManager(){
+        if (!cfg.enableIdleAutoRelease) return;
+        const delay = parseInt(cfg.idleReleaseDelay || 0,10) || 60000;
+        const deepDelay = parseInt(cfg.idleDeepReleaseDelay || 0,10) || 0;
+        const autoRestore = !!cfg.enableIdleAutoRestore;
+        let lastActive = Date.now();
+        let releasedLevel1 = false;
+        let deepTimer = null; let checkTimer = null;
+        const mark = ()=>{ lastActive = Date.now(); if(autoRestore && window.__MEM_RELEASED__){ // 用户回来了 -> 恢复
+                window.restoreFeatures(window.__MEM_RELEASED_LEVEL__ || 1);
+            }
+        };
+        const events = ['mousemove','keydown','wheel','touchstart','scroll','visibilitychange'];
+        events.forEach(ev=>window.addEventListener(ev, mark, {passive:true}));
+        function loop(){
+            const idle = Date.now() - lastActive;
+            if (!releasedLevel1 && idle > delay){
+                if (!window.__UPDATE_LOCK__) { // 更新过程锁定不释放
+                    window.releaseMemory(1); releasedLevel1 = true;
+                    if (deepDelay>0){
+                        deepTimer = setTimeout(()=>{ if(window.__MEM_RELEASED__ && (Date.now()-lastActive) > (delay+deepDelay) && !window.__UPDATE_LOCK__) window.releaseMemory(2); }, deepDelay);
+                    }
+                } else {
+                    // 更新锁存在时延后再检查（推迟释放）
+                    lastActive = Date.now();
+                }
+            }
+            checkTimer = setTimeout(loop, Math.min(15000, delay));
+        }
+        loop();
+        cleanups.push(()=>{ events.forEach(ev=>window.removeEventListener(ev, mark)); clearTimeout(checkTimer); clearTimeout(deepTimer); });
+    })();
 })();
