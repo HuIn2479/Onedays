@@ -105,5 +105,35 @@
         }
 
         initReveal();
+
+        // === 彩蛋 ===
+        // 1. Konami 代码 -> 显示一条控制台消息 + 小震动 + 临时彩色滤镜
+        if (cfg.enableKonami) {
+            const seq = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"]; let idx=0; let fired=false;
+            window.addEventListener('keydown',e=>{
+                if(fired) return;
+                if(e.key===seq[idx]){idx++; if(idx===seq.length){fired=true; konamiFire();}} else {idx = e.key===seq[0]?1:0;}
+            });
+            function konamiFire(){
+                console.log('%cKonami!','padding:4px 8px;background:#222;color:#fff;border-radius:4px');
+                try{navigator.vibrate&&navigator.vibrate([30,40,30]);}catch(_){/* ignore */}
+                const body=document.body; body.style.transition='filter 1.2s ease'; body.style.filter='hue-rotate(360deg)'; setTimeout(()=>body.style.filter='',1200);
+            }
+        }
+        // 2. 标题连点 -> 切换灰度模式 / 显示提示
+        if (cfg.enableTitleClicks) {
+            const title=document.getElementById('siteTitle');
+            if(title){
+                let clicks=[]; let grayscale=false; const need=cfg.titleClickThreshold||7; const win=cfg.titleClickWindow||2000;
+                function prune(){const now=Date.now(); clicks=clicks.filter(t=> now - t < win);} 
+                function toggle(){grayscale=!grayscale; document.documentElement.style.filter=grayscale?'grayscale(1)':'none';
+                    const tip=document.createElement('div');
+                    tip.textContent=grayscale?'灰度模式开启':'灰度模式关闭';
+                    Object.assign(tip.style,{position:'fixed',left:'50%',top:'14%',transform:'translateX(-50%)',background:'var(--bg-alt,#000)',color:'var(--fg,#fff)',padding:'6px 14px',font:'600 12px system-ui,sans-serif',border:'1px solid var(--border,rgba(0,0,0,.2))',borderRadius:'999px',zIndex:9999,boxShadow:'0 4px 16px -6px rgba(0,0,0,.25)',backdropFilter:'blur(6px)',opacity:'0',transition:'opacity .4s ease'});
+                    document.body.appendChild(tip); requestAnimationFrame(()=>tip.style.opacity='1'); setTimeout(()=>{tip.style.opacity='0'; tip.addEventListener('transitionend',()=>tip.remove(),{once:true});},1800);
+                }
+                title.addEventListener('click',()=>{prune(); clicks.push(Date.now()); if(clicks.length>=need){clicks=[]; toggle();}});
+            }
+        }
     });
 })();
