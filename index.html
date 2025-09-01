@@ -56,18 +56,20 @@
     </footer>
 
     <!-- 外部 API -->
-    <!-- 本站脚本 -->
+    <!-- 轻量内联配置（若需修改请同步 js/config.js 或改为仅引用外部） -->
+    <script>/* inline config snapshot */
+    if(!window.__APP_CONFIG__){
+      window.__APP_CONFIG__={meta:{launchDate:"2021-02-27T00:00:00+08:00",title:"忆窝",subtitle:"One Day."}};
+    }
+    </script>
+    <!-- 核心合并脚本 + 其余模块 -->
     <script src="/js/config.js" defer></script>
+    <script src="/js/core.js" defer></script>
     <script src="/js/announcement.js" defer></script>
-    <script src="/js/reveal.js" defer></script>
-    <script src="/js/hitokoto.js" defer></script>
-    <script src="/js/time.js" defer></script>
-    <script src="/js/maomao.js" defer></script>
-    <script src="/js/jinzhifuzhi.js" defer></script>
     <script src="/js/theme.js" defer></script>
     <script src="/js/extras.js" defer></script>
-    <script src="/js/enhance.js" defer></script>
     <script src="/js/loader.js" defer></script>
     <script src="/js/app-init.js" defer></script>
+    <script src="/js/lazy.js" defer></script>
   </body>
 </html>

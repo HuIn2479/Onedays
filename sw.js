@@ -1,21 +1,18 @@
-const CACHE_NAME = "onedays-v14"; // config refactor grouped
+const CACHE_NAME = "onedays-v15"; // core merge + lazy load
+// 精简预缓存（核心首屏 + 样式 + PWA 基础）
 const ASSETS = [
   "/",
   "/index.html",
   "/css/index.css",
   "/css/maomao.css",
-  "/js/time.js",
-  "/js/maomao.js",
-  "/js/jinzhifuzhi.js",
-  "/js/theme.js",
-  "/js/reveal.js",
   "/js/config.js",
+  "/js/core.js",
+  "/js/theme.js",
   "/js/announcement.js",
-  "/js/loader.js",
   "/js/extras.js",
-  "/js/hitokoto.js",
-  "/manifest.webmanifest",
+  "/js/loader.js",
   "/js/app-init.js",
+  "/manifest.webmanifest"
 ];
 self.addEventListener("install", (e) => {
   e.waitUntil(

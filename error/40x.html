@@ -1,69 +1,82 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>400 - 错误请求</title>
-    <style>
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: #f8f9fa;
-        color: #343a40;
-        line-height: 1.6;
-        margin: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        text-align: center;
-        padding: 20px;
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>40X · 请求异常</title>
+  <style>
+    :root{--accent:hsl(350 82% 54%);--accent-hover:hsl(350 82% 47%);--accent-soft:hsl(350 82% 65% / .15);--bg:#f7f7f8;--bg-alt:#ffffff;--fg:#1f2023;--fg-soft:#666;--radius:18px;--border:rgba(0 0 0 / .08);} 
+    [data-theme="dark"]{--bg:#0e1114;--bg-alt:#161a1e;--fg:#e6e7eb;--fg-soft:#9ba1a9;--border:rgba(255 255 255 / .09);--accent-soft:hsl(350 82% 54% / .22);} 
+    *{margin:0;padding:0;box-sizing:border-box;}body{font:15px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(circle at 35% 30%,var(--bg-alt),var(--bg) 70%) fixed;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2.4rem 1.4rem;color:var(--fg);} 
+    .shell{width:min(640px,100%);padding:0.2rem 0.2rem 2.2rem;position:relative;} 
+    .card{background:var(--bg-alt);border:1px solid var(--border);border-radius:var(--radius);padding:2.4rem 2.1rem 2.6rem;box-shadow:0 6px 28px -10px rgba(0,0,0,.18),0 2px 6px -2px rgba(0,0,0,.08);backdrop-filter:blur(8px);position:relative;overflow:hidden;}
+    .ring{position:absolute;inset:0;padding:1px;border-radius:inherit;background:linear-gradient(120deg,var(--accent) 0%,transparent 55%,var(--accent) 100%);mask:linear-gradient(#000,#000) content-box,linear-gradient(#000,#000);-webkit-mask:linear-gradient(#000,#000) content-box,linear-gradient(#000,#000);mask-composite:exclude;-webkit-mask-composite:xor;opacity:.55;pointer-events:none;}
+    .dots{position:absolute;inset:0;background:radial-gradient(circle at 25% 25%,var(--accent-soft) 0 140px,transparent 70%),radial-gradient(circle at 78% 70%,var(--accent-soft) 0 120px,transparent 70%);mix-blend-mode:overlay;pointer-events:none;}
+    h1{font-size:clamp(2.9rem,12vw,4.2rem);letter-spacing:.03em;font-weight:650;line-height:1.05;margin:0 0 .75rem;background:linear-gradient(95deg,var(--accent),var(--fg));-webkit-background-clip:text;background-clip:text;color:transparent;}
+    h1 small{display:block;font:600 .78rem/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.28em;opacity:.6;margin-top:.35rem;text-transform:uppercase;}
+    p{margin:.55rem 0 0;font-size:.84rem;letter-spacing:.04em;color:var(--fg-soft);}
+    .actions{margin-top:1.45rem;display:flex;flex-wrap:wrap;gap:.65rem;}
+    a.btn{--b:var(--accent);--bg:var(--accent);text-decoration:none;display:inline-flex;align-items:center;justify-content:center;min-width:5.8rem;padding:.62rem 1.15rem;font:600 .72rem/1 system-ui,sans-serif;letter-spacing:.12em;border-radius:999px;background:var(--bg);color:#fff;box-shadow:0 2px 8px -2px hsl(350 82% 40% / .4);transition:.35s;position:relative;}
+    a.btn.outline{background:transparent;color:var(--b);box-shadow:none;border:1.5px solid var(--b);} a.btn.outline:hover{background:var(--b);color:#fff;}
+    a.btn:hover{filter:brightness(1.06);box-shadow:0 4px 14px -4px hsl(350 82% 42% / .55);} a.btn:active{transform:translateY(1px);}
+    footer{margin-top:2.1rem;font-size:.6rem;letter-spacing:.1em;opacity:.55;text-transform:uppercase;}
+    .fade{animation:fade .7s cubic-bezier(.4,0,.2,1) both;}
+    @keyframes fade{from{opacity:0;transform:translateY(18px) scale(.98);}to{opacity:1;transform:none;}}
+    @media (max-width:560px){.card{padding:2.1rem 1.65rem 2.3rem;}h1{font-size:clamp(2.4rem,14vw,3.4rem);} }
+  </style>
+  <script>
+    /* 同步主站主题 & Accent */
+    (function(){
+      const ACCENTS=["hsl(350 82% 54%)","hsl(215 85% 55%)","hsl(135 50% 42%)","hsl(32 90% 52%)","hsl(275 70% 60%)"]; // 与 config.js 保持一致
+      const ACC_KEY='onedays-accent';
+      const THEME_KEY='onedays-theme';
+      const root=document.documentElement;
+      function pickAccent(){
+        let idx=parseInt(localStorage.getItem(ACC_KEY)||'0',10); if(isNaN(idx)||idx<0||idx>=ACCENTS.length) idx=0; return ACCENTS[idx];
       }
-
-      .container {
-        max-width: 600px;
-        margin: 0 auto;
-      }
-
-      h1 {
-        font-size: 4rem;
-        color: #ffc107;
-        margin: 0;
-      }
-
-      p {
-        font-size: 1.2rem;
-        margin: 20px 0;
-      }
-
-      a {
-        color: #007bff;
-        text-decoration: none;
-        border: 2px solid #007bff;
-        padding: 10px 20px;
-        border-radius: 5px;
-        transition: all 0.3s;
-      }
-
-      a:hover {
-        background: #007bff;
-        color: white;
-      }
-
-      @media (max-width: 480px) {
-        h1 {
-          font-size: 3rem;
-        }
-        p {
-          font-size: 1rem;
+      function setAccent(ac){
+        root.style.setProperty('--accent',ac);
+        // 简单生成 hover（降低亮度 7%）
+        const m=ac.match(/hsl\((\d+)[^%]* (\d+%)[^%]* (\d+)%\)/);
+        if(m){
+          let l=parseInt(m[3],10); l=Math.max(0,l-7); root.style.setProperty('--accent-hover',ac.replace(/(\d+%)\)/,l+"%)"));
         }
       }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>40X</h1>
-      <p>抱歉，服务器无法理解您的请求</p>
-      <p>请检查您的请求是否正确，或返回主页重试</p>
+      function applyTheme(){
+        let t=localStorage.getItem(THEME_KEY)||'auto';
+        if(t==='auto') t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+        if(t==='dark') root.setAttribute('data-theme','dark'); else root.removeAttribute('data-theme');
+      }
+      setAccent(pickAccent());
+      applyTheme();
+      // 监听系统暗色变化（若自动）
+      matchMedia('(prefers-color-scheme: dark)').addEventListener('change',e=>{if((localStorage.getItem(THEME_KEY)||'auto')==='auto') applyTheme();});
+    })();
+  </script>
+</head>
+<body>
+  <div class="shell fade" aria-labelledby="err-title">
+    <div class="card">
+      <span class="ring"></span><span class="dots"></span>
+      <h1 id="err-title">40X<small>REQUEST ERROR</small></h1>
+      <p>请求无法被理解或资源不存在 / 权限受限。</p>
+      <p>请检查地址或稍后再试。</p>
+      <div class="actions">
+        <a class="btn" href="/">返回主页</a>
+        <a class="btn outline" href="javascript:history.back()">上一页</a>
+      </div>
+      <footer>Ref · <span id="ts"></span></footer>
     </div>
-  </body>
+  </div>
+  <script>
+    (function(){
+      const d=new Date();
+      const pad=n=>String(n).padStart(2,'0');
+      const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'';
+      const local=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+      document.getElementById('ts').textContent=tz?local+" "+tz:local;
+    })();
+  </script>
+</body>
 </html>
