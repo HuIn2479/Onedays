@@ -1,7 +1,7 @@
 // 全局配置
 (function () {
   const config = {
-    version: "v0.8.3",
+    version: "v0.8.5",
     meta: {
       launchDate: "2021-02-27T00:00:00+08:00",
       title: "忆窝",
