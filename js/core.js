@@ -7,7 +7,8 @@
         (cfg.meta && cfg.meta.launchDate) ||
         "2021-02-27T00:00:00+08:00"
     ).getTime();
-    let t1, t2, runtimeTimer;
+    let t1, t2; // runtimeTimer 改为 rAF
+    let __rtLastSec = -1, __rtRafId = null;
     function pad(n) {
         return n < 10 ? "0" + n : "" + n;
     }
@@ -66,18 +67,81 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+        function createToast(opts) {
+            if (!opts) return; const { text = '', duration = 2400, id, variant = 'accent', closable = false } = opts;
+            if (id && document.querySelector(`[data-toast-id="${id}"]`)) return; // 防重复
+            let wrap = document.getElementById('__toast_container');
+            if (!wrap) {
+                wrap = document.createElement('div');
+                wrap.id = '__toast_container';
+                wrap.className = 'toast-container';
+                wrap.setAttribute('role', 'status');
+                wrap.setAttribute('aria-live', 'polite');
+                document.body.appendChild(wrap);
+            }
+            // 队列上限（4 个）
+            const MAX = 4;
+            if (wrap.children.length >= MAX) {
+                // 移除最早的（跳过具有相同 id 的保留）
+                for (let i = 0; i < wrap.children.length; i++) {
+                    const c = wrap.children[i]; c.classList.add('toast-leave');
+                    c.addEventListener('animationend', () => c.remove(), { once: true });
+                    break;
+                }
+            }
+            const el = document.createElement('div');
+            el.dataset.toastId = id || '';
+            el.className = `toast toast-${variant}`;
+            el.textContent = text;
+            if (closable) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'toast-close';
+                btn.setAttribute('aria-label', '关闭');
+                btn.innerHTML = '×';
+                btn.addEventListener('click', () => dismiss());
+                el.appendChild(btn);
+            }
+            // 点击本体快速关闭
+            el.addEventListener('click', () => dismiss());
+            wrap.appendChild(el);
+            // 触发入场
+            requestAnimationFrame(() => el.classList.add('show'));
+            const dismiss = () => {
+                if (!el.isConnected) return;
+                el.classList.remove('show');
+                el.classList.add('toast-leave');
+                el.addEventListener('animationend', () => el.remove(), { once: true });
+            };
+            if (duration > 0) setTimeout(dismiss, duration);
+            return el;
+        }
+        // 暴露全局，供其它脚本复用（避免重复实现）
+        if (!window.createToast) window.createToast = createToast;
+        // 在线/离线状态提示
+        if (!window.__NET_STATUS_BOUND__) {
+            window.__NET_STATUS_BOUND__ = 1;
+            window.addEventListener('offline', () => createToast({ text: '网络已断开', variant: 'danger', id: 'net-off', duration: 3000 }));
+            window.addEventListener('online', () => createToast({ text: '网络已恢复', variant: 'accent', id: 'net-on', duration: 2200 }));
+        }
         // 缓存 runtime DOM
-        t1 = document.getElementById("timeDate");
-        t2 = document.getElementById("times");
-        renderRuntime();
-        runtimeTimer = setInterval(renderRuntime, 1000);
-        document.addEventListener("visibilitychange", () => {
-            if (document.hidden) {
-                clearInterval(runtimeTimer);
-                runtimeTimer = null;
-            } else if (!runtimeTimer) {
+        t1 = document.getElementById('timeDate');
+        t2 = document.getElementById('times');
+        function runtimeLoop(){
+            if(document.hidden){ __rtRafId = null; return; }
+            const diffSec = ((Date.now() - START_AT)/1000)|0;
+            if(diffSec !== __rtLastSec){
+                __rtLastSec = diffSec;
                 renderRuntime();
-                runtimeTimer = setInterval(renderRuntime, 1000);
+            }
+            __rtRafId = requestAnimationFrame(runtimeLoop);
+        }
+        runtimeLoop();
+        document.addEventListener('visibilitychange',()=>{
+            if(!document.hidden && __rtRafId == null){
+                // 立刻刷新并重启循环
+                __rtLastSec = -1; // 强制下一帧更新
+                runtimeLoop();
             }
         });
 
@@ -90,49 +154,50 @@
             );
         }
 
-        // 一言骨架去除 (轮询直到内容加载或超时)
-        const hitokotoWrap = document.getElementById("hitokoto");
-        if (hitokotoWrap) {
-            let n = 0;
-            const poll = setInterval(() => {
-                const a = document.getElementById("hitokoto_text");
-                if (a && a.textContent && !/加载中/i.test(a.textContent)) {
-                    removeSkeleton(hitokotoWrap);
-                    clearInterval(poll);
-                }
-                if (++n >= 40) clearInterval(poll);
-            }, 100);
-        }
+        // 一言骨架去除：MutationObserver 优先，退化到定时器兜底
+        (function initHitokoto() {
+            const wrap = document.getElementById('hitokoto'); if (!wrap) return;
+            const target = document.getElementById('hitokoto_text'); if (!target) return;
+            const done = () => { if (wrap.classList.contains('skeleton')) removeSkeleton(wrap); obs && obs.disconnect(); clearTimeout(killTimer); };
+            let obs; try {
+                obs = new MutationObserver(() => { if (target.textContent && !/加载中/i.test(target.textContent)) done(); });
+                obs.observe(target, { characterData: true, subtree: true, childList: true });
+            } catch (_) { /* ignore */ }
+            // 兜底超时（4s）
+            const killTimer = setTimeout(done, 4000);
+            // 若脚本很快已填充
+            if (target.textContent && !/加载中/i.test(target.textContent)) done();
+        })();
 
         initReveal();
 
         // === 彩蛋 ===
         // 1. Konami 代码 -> 显示一条控制台消息 + 小震动 + 临时彩色滤镜
         if (cfg.enableKonami) {
-            const seq = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"]; let idx=0; let fired=false;
-            window.addEventListener('keydown',e=>{
-                if(fired) return;
-                if(e.key===seq[idx]){idx++; if(idx===seq.length){fired=true; konamiFire();}} else {idx = e.key===seq[0]?1:0;}
+            const seq = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"]; let idx = 0; let fired = false;
+            window.addEventListener('keydown', e => {
+                if (fired) return;
+                if (e.metaKey || e.ctrlKey || e.altKey) return; // 忽略组合键
+                if (e.key === seq[idx]) { idx++; if (idx === seq.length) { fired = true; konamiFire(); } } else { idx = e.key === seq[0] ? 1 : 0; }
             });
-            function konamiFire(){
-                console.log('%cKonami!','padding:4px 8px;background:#222;color:#fff;border-radius:4px');
-                try{navigator.vibrate&&navigator.vibrate([30,40,30]);}catch(_){/* ignore */}
-                const body=document.body; body.style.transition='filter 1.2s ease'; body.style.filter='hue-rotate(360deg)'; setTimeout(()=>body.style.filter='',1200);
+            function konamiFire() {
+                console.log('%cKonami!', 'padding:4px 8px;background:#222;color:#fff;border-radius:4px');
+                try { if (navigator.vibrate) navigator.vibrate([28, 40, 24]); } catch (_) {/* ignore */ }
+                const body = document.body; body.style.transition = 'filter 1.2s ease'; body.style.filter = 'hue-rotate(360deg)'; setTimeout(() => body.style.filter = '', 1200);
+                createToast({ text: cfg.konamiToastText || 'Konami 彩蛋触发!', id: 'konami-eg', variant: 'accent', duration: 2600 });
             }
         }
         // 2. 标题连点 -> 切换灰度模式 / 显示提示
         if (cfg.enableTitleClicks) {
-            const title=document.getElementById('siteTitle');
-            if(title){
-                let clicks=[]; let grayscale=false; const need=cfg.titleClickThreshold||7; const win=cfg.titleClickWindow||2000;
-                function prune(){const now=Date.now(); clicks=clicks.filter(t=> now - t < win);} 
-                function toggle(){grayscale=!grayscale; document.documentElement.style.filter=grayscale?'grayscale(1)':'none';
-                    const tip=document.createElement('div');
-                    tip.textContent=grayscale?'灰度模式开启':'灰度模式关闭';
-                    Object.assign(tip.style,{position:'fixed',left:'50%',top:'14%',transform:'translateX(-50%)',background:'var(--bg-alt,#000)',color:'var(--fg,#fff)',padding:'6px 14px',font:'600 12px system-ui,sans-serif',border:'1px solid var(--border,rgba(0,0,0,.2))',borderRadius:'999px',zIndex:9999,boxShadow:'0 4px 16px -6px rgba(0,0,0,.25)',backdropFilter:'blur(6px)',opacity:'0',transition:'opacity .4s ease'});
-                    document.body.appendChild(tip); requestAnimationFrame(()=>tip.style.opacity='1'); setTimeout(()=>{tip.style.opacity='0'; tip.addEventListener('transitionend',()=>tip.remove(),{once:true});},1800);
+            const title = document.getElementById('siteTitle');
+            if (title) {
+                let clicks = []; let grayscale = false; const need = cfg.titleClickThreshold || 7; const win = cfg.titleClickWindow || 2000;
+                function prune() { const now = Date.now(); clicks = clicks.filter(t => now - t < win); }
+                function toggle() {
+                    grayscale = !grayscale; document.documentElement.style.filter = grayscale ? 'grayscale(1)' : 'none';
+                    createToast({ text: grayscale ? '灰度模式开启' : '灰度模式关闭', variant: 'neutral', duration: 1800 });
                 }
-                title.addEventListener('click',()=>{prune(); clicks.push(Date.now()); if(clicks.length>=need){clicks=[]; toggle();}});
+                title.addEventListener('click', () => { prune(); clicks.push(Date.now()); if (clicks.length >= need) { clicks = []; toggle(); } });
             }
         }
     });

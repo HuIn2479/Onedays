@@ -1,50 +1,85 @@
 // 额外动画 & 特性
 (function () {
     const cfg = window.__APP_CONFIG__ || {};
-    // 统一注册清理函数，便于后续释放内存 (非关键特效)
-    let cleanups = [];
+    let cleanups = [];              // 保存卸载函数
     const root = document.documentElement;
     const body = document.body;
     const accents = cfg.accents || [];
-    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let lowPower = false;
-    try {
-        lowPower = matchMedia("(prefers-reduced-data: reduce)").matches;
-    } catch (_) { }
-
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let lowPower = false; try { lowPower = matchMedia('(prefers-reduced-data: reduce)').matches; } catch(_){}
     const allowGradient = cfg.enableBgGradient && !reducedMotion && !lowPower;
 
-    // 滚动进度条
-    if (cfg.enableScrollProgress) {
-        const bar = document.createElement("div");
-        bar.className = "scroll-progress";
+    // ===== 辅助：构建函数抽取 (供恢复/初始共用) =====
+    function buildScrollProgress(){
+        if (!cfg.enableScrollProgress || document.querySelector('.scroll-progress')) return;
+        const bar = document.createElement('div');
+        bar.className = 'scroll-progress';
         document.body.appendChild(bar);
         let ticking = false;
-        const calc = () => {
+        const calc = ()=>{
             const h = document.documentElement;
             const max = h.scrollHeight - h.clientHeight;
-            bar.style.width = (max ? (h.scrollTop / max) * 100 : 0) + "%";
+            bar.style.width = (max ? (h.scrollTop / max) * 100 : 0) + '%';
             ticking = false;
         };
-        const onScroll = () => {
-            if (document.hidden) return;
-            if (!ticking) {
-                ticking = true;
-                requestAnimationFrame(calc);
-            }
-        };
-        ["scroll", "resize"].forEach((ev) =>
-            window.addEventListener(ev, onScroll, { passive: true })
-        );
-        const vis = () => { if (!document.hidden) calc(); };
-        document.addEventListener("visibilitychange", vis);
+        const onScroll = ()=>{ if(document.hidden) return; if(!ticking){ ticking = true; requestAnimationFrame(calc);} };
+        ['scroll','resize'].forEach(ev=>window.addEventListener(ev,onScroll,{passive:true}));
+        const vis = ()=>{ if(!document.hidden) calc(); };
+        document.addEventListener('visibilitychange', vis);
         calc();
-        cleanups.push(() => {
-            ["scroll", "resize"].forEach((ev) => window.removeEventListener(ev, onScroll));
-            document.removeEventListener("visibilitychange", vis);
-            bar.remove();
-        });
+        cleanups.push(()=>{ ['scroll','resize'].forEach(ev=>window.removeEventListener(ev,onScroll)); document.removeEventListener('visibilitychange', vis); bar.remove(); });
     }
+
+    function bindAccentPanel(){
+        if(!cfg.enableAccentPanel || accents.length < 2) return;
+        const themeBtn = document.getElementById('themeToggle');
+        if(!themeBtn || themeBtn.dataset.accentBound) return;
+        themeBtn.dataset.accentBound = '1';
+        let pressTimer=null, panel=null;
+        const showPanel = ()=>{ if(panel) return; panel=document.createElement('div'); panel.className='accent-panel'; accents.forEach((c,i)=>{ const b=document.createElement('button'); b.className='accent-dot'; b.style.background=c; b.title=c; b.addEventListener('click',()=>{ try{ root.style.setProperty('--accent',c); localStorage.setItem('onedays-accent',i); panel.querySelectorAll('.accent-dot').forEach(d=>d.classList.remove('active')); b.classList.add('active'); }catch(_){} }); if(getComputedStyle(root).getPropertyValue('--accent').trim()===c) b.classList.add('active'); panel.appendChild(b); }); document.body.appendChild(panel); setTimeout(()=>document.addEventListener('click', outside, true),0); };
+        const hidePanel = ()=>{ if(panel){ panel.remove(); panel=null; document.removeEventListener('click', outside, true);} };
+        const outside = (e)=>{ if(panel && !panel.contains(e.target) && e.target!==themeBtn) hidePanel(); };
+        const startPress = ()=>{ pressTimer = setTimeout(showPanel, 500); };
+        const clearPress = ()=>{ clearTimeout(pressTimer); };
+        themeBtn.addEventListener('mousedown', startPress);
+        themeBtn.addEventListener('touchstart', startPress,{passive:true});
+        ['mouseup','mouseleave','touchend','touchcancel','click'].forEach(ev=>themeBtn.addEventListener(ev, clearPress));
+        cleanups.push(()=>{ themeBtn.removeAttribute('data-accent-bound'); themeBtn.removeEventListener('mousedown', startPress); themeBtn.removeEventListener('touchstart', startPress); ['mouseup','mouseleave','touchend','touchcancel','click'].forEach(ev=>themeBtn.removeEventListener(ev, clearPress)); hidePanel(); });
+    }
+
+    function bindConfetti(){
+        if(!cfg.enableConfetti || reducedMotion) return; // 尊重减少动画 & 低功耗
+        const cat = document.getElementById('maomao');
+        if(!cat || cat.dataset.confettiBound) return;
+        cat.dataset.confettiBound='1';
+        function spawnConfetti(n){
+            const rect = cat.getBoundingClientRect();
+            const frag = document.createDocumentFragment();
+            for(let i=0;i<n;i++){
+                const el=document.createElement('i');
+                const size=6+Math.random()*6; const hue=Math.floor(Math.random()*360);
+                Object.assign(el.style,{position:'fixed',left:rect.left+rect.width/2+'px',top:rect.top+rect.height/2+'px',width:size+'px',height:size*0.45+'px',background:`hsl(${hue} 80% 60%)`,transform:`rotate(${Math.random()*180}deg)`,borderRadius:'2px',pointerEvents:'none',zIndex:9999,opacity:'0',transition:'transform 1.2s ease,opacity 1.2s ease'});
+                frag.appendChild(el);
+                requestAnimationFrame(()=>{
+                    const dx=(Math.random()-0.5)*260; const dy=200+Math.random()*180;
+                    el.style.opacity='1'; el.style.transform+=` translate(${dx}px,${dy}px)`; el.style.filter='blur(.3px)';
+                    setTimeout(()=> el.style.opacity='0', 900);
+                    setTimeout(()=> el.remove(), 1400);
+                });
+            }
+            document.body.appendChild(frag);
+        }
+        const handler = ()=> spawnConfetti(36);
+        cat.addEventListener('click', handler);
+        cleanups.push(()=>{ cat.removeEventListener('click', handler); cat.removeAttribute('data-confetti-bound'); });
+    }
+    // 暴露给恢复逻辑使用
+    window.__buildScrollProgress = buildScrollProgress;
+    window.__bindAccentPanel = bindAccentPanel;
+    window.__bindConfetti = bindConfetti;
+
+    // 滚动进度条
+    buildScrollProgress();
 
     // 背景渐变
     if (allowGradient) {
@@ -56,67 +91,7 @@
     }
 
     // Accent 面板
-    const themeBtn = document.getElementById("themeToggle");
-    if (cfg.enableAccentPanel && themeBtn && accents.length > 1) {
-        let pressTimer = null,
-            panel = null;
-        const showPanel = () => {
-            if (panel) return;
-            panel = document.createElement("div");
-            panel.className = "accent-panel";
-            accents.forEach((c, i) => {
-                const b = document.createElement("button");
-                b.className = "accent-dot";
-                b.style.background = c;
-                b.title = c;
-                b.addEventListener("click", () => {
-                    try {
-                        root.style.setProperty("--accent", c);
-                        localStorage.setItem("onedays-accent", i);
-                        document
-                            .querySelectorAll(".accent-dot")
-                            .forEach((d) => d.classList.remove("active"));
-                        b.classList.add("active");
-                    } catch (e) { }
-                });
-                if (getComputedStyle(root).getPropertyValue("--accent").trim() === c)
-                    b.classList.add("active");
-                panel.appendChild(b);
-            });
-            document.body.appendChild(panel);
-            setTimeout(() => document.addEventListener("click", outside, true), 0);
-        };
-        const hidePanel = () => {
-            if (panel) {
-                panel.remove();
-                panel = null;
-                document.removeEventListener("click", outside, true);
-            }
-        };
-        const outside = (e) => {
-            if (panel && !panel.contains(e.target) && e.target !== themeBtn)
-                hidePanel();
-        };
-        const startPress = () => {
-            pressTimer = setTimeout(showPanel, 500);
-        };
-        const clearPress = () => {
-            clearTimeout(pressTimer);
-        };
-        themeBtn.addEventListener("mousedown", startPress);
-        themeBtn.addEventListener("touchstart", startPress, { passive: true });
-        ["mouseup", "mouseleave", "touchend", "touchcancel", "click"].forEach(
-            (ev) => themeBtn.addEventListener(ev, clearPress)
-        );
-        cleanups.push(() => {
-            themeBtn.removeEventListener("mousedown", startPress);
-            themeBtn.removeEventListener("touchstart", startPress);
-            ["mouseup", "mouseleave", "touchend", "touchcancel", "click"].forEach(
-                (ev) => themeBtn.removeEventListener(ev, clearPress)
-            );
-            hidePanel();
-        });
-    }
+    bindAccentPanel();
 
     // 控制台欢迎 + ASCII
     try {
@@ -206,48 +181,8 @@
     } catch (_) { }
 
     // 猫咪点击彩带
-    if (cfg.enableConfetti) {
-        const cat = document.getElementById("maomao");
-        if (cat) {
-            const handler = () => spawnConfetti(36);
-            cat.addEventListener("click", handler);
-            function spawnConfetti(n) {
-                const frag = document.createDocumentFragment();
-                const rect = cat.getBoundingClientRect();
-                for (let i = 0; i < n; i++) {
-                    const el = document.createElement("i");
-                    const size = 6 + Math.random() * 6;
-                    const hue = Math.floor(Math.random() * 360);
-                    Object.assign(el.style, {
-                        position: "fixed",
-                        left: rect.left + rect.width / 2 + "px",
-                        top: rect.top + rect.height / 2 + "px",
-                        width: size + "px",
-                        height: size * 0.45 + "px",
-                        background: `hsl(${hue} 80% 60%)`,
-                        transform: `rotate(${Math.random() * 180}deg)`,
-                        borderRadius: "2px",
-                        pointerEvents: "none",
-                        zIndex: 9999,
-                        opacity: "0",
-                        transition: "transform 1.2s ease,opacity 1.2s ease",
-                    });
-                    frag.appendChild(el);
-                    requestAnimationFrame(() => {
-                        const dx = (Math.random() - 0.5) * 260;
-                        const dy = 200 + Math.random() * 180;
-                        el.style.opacity = "1";
-                        el.style.transform += ` translate(${dx}px,${dy}px)`;
-                        el.style.filter = "blur(.3px)";
-                        setTimeout(() => { el.style.opacity = "0"; }, 900);
-                        setTimeout(() => el.remove(), 1400);
-                    });
-                }
-                document.body.appendChild(frag);
-            }
-            cleanups.push(() => cat.removeEventListener("click", handler));
-        }
-    }
+    // Confetti
+    bindConfetti();
 
     // 恢复功能：按需重建已释放的特效
     if (!window.restoreFeatures) {
@@ -258,52 +193,9 @@
             if (level > 1 && c.enableBgGradient) {
                 body.classList.add('gradient-active');
             }
-            // Scroll Progress
-            if (c.enableScrollProgress && !document.querySelector('.scroll-progress')) {
-                (function rebuildScroll() {
-                    const bar = document.createElement('div');
-                    bar.className = 'scroll-progress';
-                    document.body.appendChild(bar);
-                    let ticking = false;
-                    const calc = () => {
-                        const h = document.documentElement;
-                        const max = h.scrollHeight - h.clientHeight;
-                        bar.style.width = (max ? (h.scrollTop / max) * 100 : 0) + '%';
-                        ticking = false;
-                    };
-                    const onScroll = () => { if (document.hidden) return; if (!ticking) { ticking = true; requestAnimationFrame(calc); } };
-                    ['scroll','resize'].forEach(ev => window.addEventListener(ev,onScroll,{passive:true}));
-                    const vis = () => { if (!document.hidden) calc(); };
-                    document.addEventListener('visibilitychange', vis);
-                    calc();
-                    cleanups.push(() => { ['scroll','resize'].forEach(ev=>window.removeEventListener(ev,onScroll)); document.removeEventListener('visibilitychange', vis); bar.remove(); });
-                })();
-            }
-            // Accent panel listeners
-            const themeBtn = document.getElementById('themeToggle');
-            if (c.enableAccentPanel && themeBtn && (c.accents||[]).length>1 && !themeBtn.dataset.accentBound) {
-                themeBtn.dataset.accentBound = '1';
-                let pressTimer=null, panel=null;
-                const accents = c.accents || [];
-                const root = document.documentElement;
-                const showPanel = () => { if(panel) return; panel=document.createElement('div'); panel.className='accent-panel'; accents.forEach((col,i)=>{ const b=document.createElement('button'); b.className='accent-dot'; b.style.background=col; b.title=col; b.addEventListener('click',()=>{ try{ root.style.setProperty('--accent',col); localStorage.setItem('onedays-accent',i); document.querySelectorAll('.accent-dot').forEach(d=>d.classList.remove('active')); b.classList.add('active'); }catch(_){} }); if (getComputedStyle(root).getPropertyValue('--accent').trim()===col) b.classList.add('active'); panel.appendChild(b); }); document.body.appendChild(panel); setTimeout(()=>document.addEventListener('click', outside, true),0); };
-                const hidePanel = () => { if(panel){ panel.remove(); panel=null; document.removeEventListener('click', outside, true);} };
-                const outside = (e) => { if(panel && !panel.contains(e.target) && e.target!==themeBtn) hidePanel(); };
-                const startPress = () => { pressTimer=setTimeout(showPanel,500); };
-                const clearPress = () => { clearTimeout(pressTimer); };
-                themeBtn.addEventListener('mousedown', startPress);
-                themeBtn.addEventListener('touchstart', startPress, {passive:true});
-                ['mouseup','mouseleave','touchend','touchcancel','click'].forEach(ev=>themeBtn.addEventListener(ev, clearPress));
-                cleanups.push(()=>{ themeBtn.removeAttribute('data-accent-bound'); themeBtn.removeEventListener('mousedown', startPress); themeBtn.removeEventListener('touchstart', startPress); ['mouseup','mouseleave','touchend','touchcancel','click'].forEach(ev=>themeBtn.removeEventListener(ev, clearPress)); hidePanel(); });
-            }
-            // Confetti
-            if (c.enableConfetti) {
-                const cat = document.getElementById('maomao');
-                if (cat && !cat.dataset.confettiBound) {
-                    cat.dataset.confettiBound='1';
-                    const handler=()=>spawnConfetti(36);
-                    function spawnConfetti(n){ const frag=document.createDocumentFragment(); const rect=cat.getBoundingClientRect(); for(let i=0;i<n;i++){ const el=document.createElement('i'); const size=6+Math.random()*6; const hue=Math.floor(Math.random()*360); Object.assign(el.style,{position:'fixed',left:rect.left+rect.width/2+'px',top:rect.top+rect.height/2+'px',width:size+'px',height:size*0.45+'px',background:`hsl(${hue} 80% 60%)`,transform:`rotate(${Math.random()*180}deg)`,borderRadius:'2px',pointerEvents:'none',zIndex:9999,opacity:'0',transition:'transform 1.2s ease,opacity 1.2s ease'}); frag.appendChild(el); requestAnimationFrame(()=>{ const dx=(Math.random()-0.5)*260; const dy=200+Math.random()*180; el.style.opacity='1'; el.style.transform+=` translate(${dx}px,${dy}px)`; el.style.filter='blur(.3px)'; setTimeout(()=>{ el.style.opacity='0'; },900); setTimeout(()=>el.remove(),1400); }); } document.body.appendChild(frag);} cat.addEventListener('click', handler); cleanups.push(()=>{ cat.removeEventListener('click', handler); cat.removeAttribute('data-confetti-bound'); }); }
-            }
+            buildScrollProgress();
+            bindAccentPanel();
+            bindConfetti();
             // 猫咪恢复
             if (window.initMaomao && !document.hidden) { try { window.initMaomao(); } catch(_){} }
             window.__MEM_RELEASED__ = 0;

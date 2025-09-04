@@ -1,7 +1,7 @@
 // 全局配置
 (function () {
   const config = {
-    version: "v0.8.5",
+    version: "v0.9.0",
     meta: {
       launchDate: "2021-02-27T00:00:00+08:00",
       title: "忆窝",
@@ -31,22 +31,17 @@
     },
     announcement: {
       enable: true,
-      style: "card", // 'bar' | 'card'
+      style: "card",
       icon: "😽",
       messages: [
-        "欢迎来到本站，祝你浏览愉快~",
         "平安喜樂，萬事勝意，祝你，祝我，祝我們",
-        "关注塔菲喵~关注塔菲谢谢喵~",
-        "愿你我都能被温柔以待",
-        "这里会有什么呢？",
-        "一个什么都不会的人",
+        "关注永雏塔菲喵！关注永雏塔菲谢谢喵！",
         "ISTP-A | 机械键盘爱好者 | 猫奴",
       ],
       scrollSpeed: 60, // px/s (bar)
       cycleInterval: 4800, // ms (card)
       transition: 500, // ms (card)
-      progress: true, // 进度条 (card)
-      dismissKey: "ann-v2",
+      dismissKey: "ann-v3",
       closeButton: true,
     },
     performance: {

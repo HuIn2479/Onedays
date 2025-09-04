@@ -1,8 +1,23 @@
-# http://* https://onedays.example.com 301!
+# 1) 根路径别名
+/home    / 301
+/index   / 301
 
-# 根路径别名示例
-/home / 301
-/index / 301
+# 2) 去掉 .html (示例)
+# /about.html   /about   301
+# /links.html   /links   301
 
-# 404 回退
-/* /error/40x.html 404
+# 3) 静态资源
+/favicon.ico   /image/logo/index.jpg 302
+
+# 4) 维护模式 (启用时放最顶)
+# /*   /error/50x.html 302!
+
+# 5) SPA 前端路由 (如果未来启用, 放在 404 前)
+# /*   /index.html 200
+
+# 6) 自定义 404 兜底
+/*    /error/40x.html 404
+
+# 7) 自定义 500 (内部错误备用)
+# /500  /error/50x.html 500
+
