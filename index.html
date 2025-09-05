@@ -15,23 +15,26 @@
   <link rel="stylesheet" href="/css/index.css" />
   <link rel="preconnect" href="https://v1.hitokoto.cn" crossorigin />
   <link rel="stylesheet" href="/css/maomao.css" />
+  <script src="/js/i18n.js"></script>
 </head>
 
 <body>
   <div id="announcement" class="announcement" aria-label="站点公告" role="status" aria-live="polite" hidden>
     <div class="ann-icon" aria-hidden="true"></div>
-    <div class="ann-inner"><span class="ann-text"></span></div>
-    <button class="ann-close" aria-label="关闭公告" title="关闭" hidden>×</button>
+    <span class="ann-text"></span>
+    <button class="ann-close" data-i18n-attr='{"aria-label":"announcementClose","title":"close"}' hidden>
+      <span class="close-icon">✕</span>
+    </button>
   </div>
   <main class="main" aria-label="主页">
     <div class="hero reveal">
       <h1 class="title" id="siteTitle">忆窝</h1>
       <h2 class="subtitle" id="siteSubtitle">One Day.</h2>
       <p class="runtime skeleton">
-        <span id="timeDate">加载中…</span><span id="times">加载中…</span>
+        <span id="timeDate" data-i18n="loading">加载中…</span><span id="times" data-i18n="loading">加载中…</span>
       </p>
       <div class="actions">
-        <button id="themeToggle" class="btn" aria-label="切换主题" title="切换浅/深色">
+        <button id="themeToggle" class="btn" data-i18n-attr='{"aria-label":"themeToggle","title":"themeToggleTitle"}'>
           🌓
         </button>
       </div>
@@ -39,10 +42,10 @@
   </main>
 
   <!-- 开屏动画 -->
-  <div id="splash" class="splash" aria-label="加载中">
+  <div id="splash" class="splash" data-i18n-attr='{"aria-label":"splashLoading"}'>
     <div class="splash-inner">
       <div class="splash-logo">🌸</div>
-      <div class="splash-title">Loading...</div>
+      <div class="splash-title" data-i18n="loadingProgress">Loading...</div>
       <div class="splash-bar"><span></span></div>
     </div>
   </div>
@@ -51,9 +54,9 @@
 
   <footer class="footer reveal">
     <p class="reveal-item">© <span id="year"></span> 〇Enshō🌸</p>
-    <p id="hitokoto" class="reveal-item skeleton">
-      <a href="#" id="hitokoto_text" rel="noopener" title="一言">加载中..🍀</a>
-    </p>
+        <div id="hitokoto" class="skeleton" hidden>
+      <a href="#" id="hitokoto_text" rel="noopener" data-i18n-attr='{"title":"hitokotoTitle"}' data-i18n="hitokotoLoading">加载中..🍀</a>
+    </div>
   </footer>
 
   <!-- 外部 API -->

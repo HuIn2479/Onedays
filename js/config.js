@@ -1,7 +1,7 @@
 // 全局配置
 (function () {
   const config = {
-    version: "v0.9.0",
+    version: "v0.9.5",
     meta: {
       launchDate: "2021-02-27T00:00:00+08:00",
       title: "忆窝",
@@ -29,18 +29,19 @@
       enableBgGradient: true, // 启用背景渐变
       gradientAnimationSpeed: 35, // 渐变动画速度
     },
+    runtime: {
+      enable: true, // 启用运行时间显示
+    },
     announcement: {
       enable: true,
-      style: "card",
       icon: "😽",
       messages: [
         "平安喜樂，萬事勝意，祝你，祝我，祝我們",
         "关注永雏塔菲喵！关注永雏塔菲谢谢喵！",
         "ISTP-A | 机械键盘爱好者 | 猫奴",
       ],
-      scrollSpeed: 60, // px/s (bar)
-      cycleInterval: 4800, // ms (card)
-      transition: 500, // ms (card)
+      cycleInterval: 4800, // ms
+      transition: 500, // ms
       dismissKey: "ann-v3",
       closeButton: true,
     },
@@ -87,15 +88,14 @@
     enableScrollProgress: config.effects.enableScrollProgress,
     enableBgGradient: config.effects.enableBgGradient,
     gradientAnimationSpeed: config.effects.gradientAnimationSpeed,
+    // runtime
+    enableRuntime: config.runtime.enable,
     // announcement
     enableAnnouncement: config.announcement.enable,
-    announcementStyle: config.announcement.style,
     announcementIcon: config.announcement.icon,
     announcementMessages: config.announcement.messages,
-    announcementScrollSpeed: config.announcement.scrollSpeed,
     announcementCycleInterval: config.announcement.cycleInterval,
     announcementTransition: config.announcement.transition,
-    enableAnnouncementProgress: config.announcement.progress,
     announcementDismissKey: config.announcement.dismissKey,
     enableAnnouncementClose: config.announcement.closeButton,
     // performance

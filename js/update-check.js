@@ -6,6 +6,9 @@
     const ENABLE = (updateCfg.enable !== false) && (cfg.enableUpdateCheck !== false);
     if (!ENABLE) return;
 
+    // 获取翻译函数
+    const t = window.__I18N__?.t || (k => k);
+
     // 基础配置 (多来源回退)
     const VERSION = cfg.version || 'dev';
     const SRC = updateCfg.source || cfg.updateSource || '/js/config.js';
@@ -70,7 +73,9 @@
 
     function queueGap(v) { gapList.push(v); saveGap(); }
 
-    function buildGapInfo() { return gapList.length > 1 ? ' (累计 ' + gapList.length + ' 次版本跨度)' : ''; }
+    function buildGapInfo() { 
+        return gapList.length > 1 ? ' ' + t('updateCumulative') + ' ' + gapList.length + ' ' + t('updateVersionSpan') : ''; 
+    }
 
     function lockUpdate() { window.__UPDATE_LOCK__ = true; }
     function unlockUpdate() { delete window.__UPDATE_LOCK__; }
@@ -87,19 +92,19 @@
 
     function proceedUpdate(remote) {
         if (shouldDeferQuiet()) {
-            addAnn('[更新] 检测到新版本 ' + remote + ' (静默期内稍后自动刷新)', true);
+            addAnn(t('updateNewVersion') + ' ' + remote + ' ' + t('updateQuietPeriod'), true);
             schedule();
             return;
         }
         if (document.hidden) {
             window.__PENDING_UPDATE__ = remote;
-            addAnn('[更新] 新版本 ' + remote + ' 已就绪，返回页面后应用', true);
+            addAnn(t('updateReady') + ' ' + remote + ' ' + t('updateReadySuffix'), true);
             schedule();
             return;
         }
         setTimeout(() => {
             lockUpdate();
-            addAnn('[更新] 发现新版本 ' + remote + buildGapInfo() + ' ，即将自动刷新…', true);
+            addAnn(t('updateFound') + ' ' + remote + buildGapInfo() + t('updateWillRefresh'), true);
             setTimeout(applyUpdate, 1500);
         }, NOTIFY_DELAY);
     }
@@ -125,8 +130,8 @@
     if (stored && stored.startsWith('pending-')) {
         localStorage.setItem(KEY_VERSION, VERSION);
         lastUpdateTs = Date.now(); localStorage.setItem(KEY_LAST_UPD, lastUpdateTs.toString());
-        let msg = '[更新] 已更新到版本 ' + VERSION;
-        if (gapList.length > 1) msg += ' (累计 ' + gapList.length + ' 次版本)';
+        let msg = t('updateComplete') + ' ' + VERSION;
+        if (gapList.length > 1) msg += ' ' + t('updateCumulative') + ' ' + gapList.length + ' ' + t('updateVersions');
         addAnn(msg, true);
         gapList = []; saveGap();
         unlockUpdate();
@@ -137,7 +142,7 @@
         if (!document.hidden && window.__PENDING_UPDATE__) {
             const v = window.__PENDING_UPDATE__; delete window.__PENDING_UPDATE__;
             lockUpdate();
-            addAnn('[更新] 应用挂起的新版本 ' + v + ' …', true);
+            addAnn(t('updateApplying') + ' ' + v + ' …', true);
             setTimeout(applyUpdate, 600);
         }
     });
