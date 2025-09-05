@@ -1,7 +1,7 @@
 // 全局配置
 (function () {
   const config = {
-    version: "v0.9.5",
+    version: "v0.9.7",
     meta: {
       launchDate: "2021-02-27T00:00:00+08:00",
       title: "忆窝",
@@ -31,6 +31,26 @@
     },
     runtime: {
       enable: true, // 启用运行时间显示
+    },
+    hitokoto: {
+      enable: true, // 启用一言显示
+      provider: "hitokoto", // API提供者：hitokoto | custom
+      apis: {
+        // 官方一言 API
+        hitokoto: {
+          url: "https://v1.hitokoto.cn/",
+          categories: ["a", "b", "d", "h"],
+          params: { encode: "json" }
+        },
+        // 自定义 API
+        custom: {
+          url: "", // 用户自定义API地址
+          params: {}
+        }
+      },
+      timeout: 8000, // 请求超时时间(ms)
+      retries: 2, // 重试次数
+      cacheTime: 300000, // 缓存时间(ms) - 5分钟
     },
     announcement: {
       enable: true,
@@ -90,6 +110,13 @@
     gradientAnimationSpeed: config.effects.gradientAnimationSpeed,
     // runtime
     enableRuntime: config.runtime.enable,
+    // hitokoto
+    enableHitokoto: config.hitokoto.enable,
+    hitokotoProvider: config.hitokoto.provider,
+    hitokotoApis: config.hitokoto.apis,
+    hitokotoTimeout: config.hitokoto.timeout,
+    hitokotoRetries: config.hitokoto.retries,
+    hitokotoCacheTime: config.hitokoto.cacheTime,
     // announcement
     enableAnnouncement: config.announcement.enable,
     announcementIcon: config.announcement.icon,

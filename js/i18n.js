@@ -37,6 +37,9 @@
             splashLoading: "加载中",
             hitokotoTitle: "一言",
             hitokotoLoading: "加载中..🍀",
+            hitokotoError: "获取一言失败 (离线?)",
+            hitokotoTimeout: "一言加载超时",
+            hitokotoNetwork: "网络连接失败",
 
             // 按钮文本
             copyButton: "COPY",
@@ -95,6 +98,9 @@
             splashLoading: "Loading",
             hitokotoTitle: "Hitokoto",
             hitokotoLoading: "Loading..🍀",
+            hitokotoError: "Failed to fetch Hitokoto (Offline?)",
+            hitokotoTimeout: "Hitokoto loading timeout",
+            hitokotoNetwork: "Network connection failed",
 
             // Button text
             copyButton: "COPY",
@@ -153,6 +159,9 @@
             splashLoading: "読み込み中",
             hitokotoTitle: "一言",
             hitokotoLoading: "読み込み中..🍀",
+            hitokotoError: "一言の取得に失敗 (オフライン?)",
+            hitokotoTimeout: "一言の読み込みがタイムアウト",
+            hitokotoNetwork: "ネットワーク接続に失敗",
 
             // ボタンテキスト
             copyButton: "コピー",
