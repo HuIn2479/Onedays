@@ -366,9 +366,6 @@ body {
 .splash-bar span {position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent);transition:width .28s ease;}
 /* 滚动进度条 */
 .scroll-progress{position:fixed;left:0;top:0;height:3px;background:var(--accent);width:0;z-index:1000;transition:width .15s linear;}
-/* 背景渐变 (可切换) */
-body.gradient-active{background:radial-gradient(circle at 30% 30%,var(--bg-alt),var(--bg) 60%) fixed;animation:gradMove var(--grad-speed,40s) linear infinite;}
-@keyframes gradMove{0%{background-position:0 0;}100%{background-position:200% 200%;}}
 /* Accent 选择面板 */
 .accent-panel{position:fixed;bottom:1rem;right:1rem;background:var(--bg-alt);border:1px solid var(--border);padding:.6rem .7rem .55rem;border-radius:var(--radius);display:flex;gap:.5rem;box-shadow:0 4px 14px -4px rgba(0,0,0,.15);backdrop-filter:blur(6px);animation:fadeIn .25s ease;}
 .accent-dot{width:22px;height:22px;border-radius:50%;cursor:pointer;position:relative;outline:none;border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;}

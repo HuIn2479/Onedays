@@ -1,4 +1,3 @@
-// core.js: 合并 reveal / enhance / time 逻辑 + 轻量首屏优化
 (function () {
     const cfg = window.__APP_CONFIG__ || {};
     // === Runtime 计时 ===

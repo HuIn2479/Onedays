@@ -1,4 +1,3 @@
-// 额外动画 & 特性
 (function () {
     const cfg = window.__APP_CONFIG__ || {};
     let cleanups = [];              // 保存卸载函数
@@ -7,7 +6,6 @@
     const accents = cfg.accents || [];
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
     let lowPower = false; try { lowPower = matchMedia('(prefers-reduced-data: reduce)').matches; } catch (_) { }
-    const allowGradient = cfg.enableBgGradient && !reducedMotion && !lowPower;
 
     // ===== 辅助：构建函数抽取 (供恢复/初始共用) =====
     function buildScrollProgress() {
@@ -80,15 +78,6 @@
 
     // 滚动进度条
     buildScrollProgress();
-
-    // 背景渐变
-    if (allowGradient) {
-        body.classList.add("gradient-active");
-        body.style.setProperty(
-            "--grad-speed",
-            (cfg.gradientAnimationSpeed || 40) + "s"
-        );
-    }
 
     // Accent 面板
     bindAccentPanel();
@@ -225,10 +214,6 @@
         window.restoreFeatures = function (level = 1) {
             if (!window.__MEM_RELEASED__) return; // 未释放无需恢复
             const c = window.__APP_CONFIG__ || {};
-            // 重新启用背景渐变
-            if (level > 1 && c.enableBgGradient) {
-                body.classList.add('gradient-active');
-            }
             buildScrollProgress();
             bindAccentPanel();
             bindConfetti();
@@ -243,7 +228,6 @@
         window.releaseMemory = function (level = 1) {
             while (cleanups.length) { try { (cleanups.pop())(); } catch (_) { } }
             const ascii = document.getElementById('ascii-layer'); if (ascii) ascii.remove();
-            if (level > 1) body.classList.remove('gradient-active');
             if (window.detachMaomao) try { window.detachMaomao(); } catch (_) { }
             window.__MEM_RELEASED__ = level; window.__MEM_RELEASED_LEVEL__ = level;
             if (console && console.log) console.log('[Onedays] memory released (level ' + level + ')');

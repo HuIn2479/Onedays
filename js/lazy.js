@@ -5,7 +5,7 @@
     function idle(fn) { if ('requestIdleCallback' in window) requestIdleCallback(fn, { timeout: 2500 }); else setTimeout(fn, 1200); }
 
     // 延迟加载 F12 限制与小猫交互
-    idle(() => { loadScript('/js/maomao.js'); loadScript('/js/jinzhifuzhi.js'); });
+    idle(() => { loadScript('/js/maomao.js'); loadScript('/js/no-copy.js'); });
 
     // 一言：智能延迟加载
     if (cfg.enableHitokoto !== false) {

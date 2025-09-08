@@ -1,4 +1,3 @@
-// 一言功能 - 多API适配器版本
 (function () {
   const cfg = window.__APP_CONFIG__ || {};
 

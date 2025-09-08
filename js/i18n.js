@@ -1,4 +1,3 @@
-// 国际化 (i18n) 系统
 (function () {
     // 语言包定义
     const translations = {

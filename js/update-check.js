@@ -1,4 +1,3 @@
-// update-check.js: 版本检测 -> 公告注入 + 自动刷新 (静默窗口 / 可见性 / Splash 等待 / 多版本累计)
 (function () {
     const cfg = window.__APP_CONFIG__ || {};
     const updateCfg = cfg.update || {};
@@ -31,12 +30,15 @@
     function saveGap() { try { localStorage.setItem(KEY_GAP_LIST, JSON.stringify(gapList.slice(-6))); } catch (_) { } }
 
     function addAnn(text, front) {
-        const payload = typeof text === 'string' ? { text } : text;
+        // 为更新消息添加特殊标识
+        const payload = typeof text === 'string' ? { text, isUpdate: true } : { ...text, isUpdate: true };
         if (window.__announceAdd) {
-            window.__announceAdd(payload, front ? { priority: 'front' } : undefined);
+            // 更新消息总是使用最高优先级，确保显示在第一条
+            window.__announceAdd(payload, { priority: 'front', updateMessage: true });
         } else {
             window.__ANN_PENDING = window.__ANN_PENDING || [];
-            front ? window.__ANN_PENDING.unshift(payload) : window.__ANN_PENDING.push(payload);
+            // 更新消息总是插入到队列最前面
+            window.__ANN_PENDING.unshift(payload);
         }
     }
 
@@ -45,10 +47,29 @@
         return !!(s && !s.classList.contains('fade-out'));
     }
 
-    // 解析版本 (兼容 "version: \"1.x\"" / version:'1.x')
+    // 解析版本 (支持多种格式)
     function parseVersion(txt) {
-        const m = txt.match(/version\s*:\s*["']([^"']+)["']/);
-        return m ? m[1] : null;
+        // 尝试多种版本格式匹配
+        const patterns = [
+            // version: "1.x" / version: '1.x'
+            /version\s*:\s*["']([^"']+)["']/,
+            // "version": "1.x"
+            /"version"\s*:\s*"([^"]+)"/,
+            // const VERSION = "1.x" / let VERSION = "1.x"
+            /(?:const|let|var)\s+VERSION\s*=\s*["']([^"']+)["']/,
+            // VERSION: "1.x"
+            /VERSION\s*:\s*["']([^"']+)["']/,
+            // v1.x.x 格式
+            /\bv?(\d+\.\d+(?:\.\d+)?(?:-[a-zA-Z0-9\-\.]+)?)\b/
+        ];
+
+        for (const pattern of patterns) {
+            const match = txt.match(pattern);
+            if (match && match[1]) {
+                return match[1];
+            }
+        }
+        return null;
     }
 
     async function fetchRemoteVersion(attempt = 0) {
@@ -73,8 +94,8 @@
 
     function queueGap(v) { gapList.push(v); saveGap(); }
 
-    function buildGapInfo() { 
-        return gapList.length > 1 ? ' ' + t('updateCumulative') + ' ' + gapList.length + ' ' + t('updateVersionSpan') : ''; 
+    function buildGapInfo() {
+        return gapList.length > 1 ? ' ' + t('updateCumulative') + ' ' + gapList.length + ' ' + t('updateVersionSpan') : '';
     }
 
     function lockUpdate() { window.__UPDATE_LOCK__ = true; }

@@ -10,10 +10,14 @@
     const closeBtn = box.querySelector('.ann-close');
 
     // 收集消息
-    const msgs = (cfg.announcementMessages || []).filter(Boolean);
+    const msgs = [];
+    // 先添加待处理消息，确保它们在最前面
     if (Array.isArray(window.__ANN_PENDING) && window.__ANN_PENDING.length) {
         msgs.push(...window.__ANN_PENDING.splice(0));
     }
+    // 然后添加配置中的普通消息
+    const configMsgs = (cfg.announcementMessages || []).filter(Boolean);
+    msgs.push(...configMsgs);
     if (!msgs.length) {
         box.remove();
         return;

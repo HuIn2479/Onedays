@@ -1,7 +1,7 @@
 // 全局配置
 (function () {
   const config = {
-    version: "v0.9.7",
+    version: "v0.9.8",
     meta: {
       launchDate: "2021-02-27T00:00:00+08:00",
       title: "忆窝",
@@ -26,8 +26,6 @@
     },
     effects: {
       enableScrollProgress: true, // 启用滚动进度
-      enableBgGradient: true, // 启用背景渐变
-      gradientAnimationSpeed: 35, // 渐变动画速度
     },
     runtime: {
       enable: true, // 启用运行时间显示
@@ -106,8 +104,6 @@
     enableAccentPanel: config.theme.enableAccentPanel,
     // effects
     enableScrollProgress: config.effects.enableScrollProgress,
-    enableBgGradient: config.effects.enableBgGradient,
-    gradientAnimationSpeed: config.effects.gradientAnimationSpeed,
     // runtime
     enableRuntime: config.runtime.enable,
     // hitokoto
