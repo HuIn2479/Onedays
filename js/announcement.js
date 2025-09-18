@@ -1,9 +1,18 @@
 (function () {
     const cfg = window.__APP_CONFIG__ || {};
-    if (cfg.enableAnnouncement === false) return;
-
+    
     const box = document.getElementById('announcement');
     if (!box) return;
+    
+    // 如果公告被禁用，立即移除元素并清理全局状态
+    if (cfg.enableAnnouncement === false) {
+        box.remove();
+        // 清理可能存在的待处理消息和接口
+        delete window.__ANN_PENDING;
+        delete window.__announceAdd;
+        console.log('[Announcement] 公告系统已禁用，清理完成');
+        return;
+    }
 
     const textEl = box.querySelector('.ann-text');
     const iconEl = box.querySelector('.ann-icon');
@@ -41,7 +50,15 @@
         closeBtn.addEventListener('click', () => {
             localStorage.setItem(storeKey, '1');
             box.classList.add('ann-hide');
-            setTimeout(() => box.remove(), 400);
+            
+            // 清理动态添加接口，防止后续添加消息到已关闭的公告
+            delete window.__announceAdd;
+            
+            setTimeout(() => {
+                if (box.parentNode) {
+                    box.remove();
+                }
+            }, 400);
         });
     }
 
@@ -116,6 +133,12 @@
     // 动态添加消息接口
     window.__announceAdd = (msg, opts) => {
         if (!msg) return;
+        
+        // 检查公告是否仍然存在且可见
+        if (!box || !box.parentNode || box.classList.contains('ann-hide')) {
+            console.warn('[Announcement] 公告已关闭，无法添加新消息');
+            return;
+        }
 
         if (opts && opts.priority === 'front') {
             msgs.unshift(msg);

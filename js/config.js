@@ -1,7 +1,7 @@
 // 全局配置
 (function () {
   const config = {
-    version: "v0.9.8",
+    version: "v0.10.0",
     meta: {
       launchDate: "2021-02-27T00:00:00+08:00",
       title: "忆窝",
@@ -25,13 +25,13 @@
       enableAccentPanel: true,
     },
     effects: {
-      enableScrollProgress: true, // 启用滚动进度
+      enableScrollProgress: false, // 启用滚动进度
     },
     runtime: {
-      enable: true, // 启用运行时间显示
+      enable: false, // 启用运行时间显示
     },
     hitokoto: {
-      enable: true, // 启用一言显示
+      enable: false, // 启用一言显示
       provider: "hitokoto", // API提供者：hitokoto | custom
       apis: {
         // 官方一言 API
@@ -51,7 +51,7 @@
       cacheTime: 300000, // 缓存时间(ms) - 5分钟
     },
     announcement: {
-      enable: true,
+      enable: false,
       icon: "😽",
       messages: [
         "平安喜樂，萬事勝意，祝你，祝我，祝我們",
@@ -75,6 +75,19 @@
       checkInterval: 300000,     // 轮询间隔(ms)
       notifyDelay: 0,            // 检测到新版本后展示延迟
       source: "/js/config.js",   // 提取 version 的文件
+    },
+    navigation: {
+      enable: true,              // 启用导航卡片
+      cards: [
+        {
+          id: "Blog",
+          icon: "🎯",
+          title: "Rin",
+          description: "平安喜樂，萬事勝意，祝你，祝我，祝我們",
+          url: "https://ns.onedays.top",
+          target: "_self"
+        }
+      ]
     },
     easter: {
       konami: true,            // Konami 代码触发彩蛋
@@ -132,6 +145,9 @@
     updateCheckInterval: config.update.checkInterval,
     updateNotifyDelay: config.update.notifyDelay,
     updateSource: config.update.source,
+    // navigation
+    enableNavigation: config.navigation.enable,
+    navigationCards: config.navigation.cards,
     // version flat
     version: config.version,
     // easter

@@ -30,6 +30,13 @@
     function saveGap() { try { localStorage.setItem(KEY_GAP_LIST, JSON.stringify(gapList.slice(-6))); } catch (_) { } }
 
     function addAnn(text, front) {
+        // 检查公告系统是否启用
+        const cfg = window.__APP_CONFIG__ || {};
+        if (cfg.enableAnnouncement === false) {
+            console.log('[Update] 公告系统已禁用，跳过消息:', text);
+            return;
+        }
+        
         // 为更新消息添加特殊标识
         const payload = typeof text === 'string' ? { text, isUpdate: true } : { ...text, isUpdate: true };
         if (window.__announceAdd) {
