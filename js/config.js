@@ -1,7 +1,7 @@
 // 全局配置
 (function () {
   const config = {
-    version: "v0.10.0",
+    version: "v0.10.1",
     meta: {
       launchDate: "2021-02-27T00:00:00+08:00",
       title: "忆窝",
@@ -85,6 +85,14 @@
           title: "Rin",
           description: "平安喜樂，萬事勝意，祝你，祝我，祝我們",
           url: "https://ns.onedays.top",
+          target: "_self"
+        },
+        {
+          id: "GitHub",
+          icon: "💻",
+          title: "GitHub",
+          description: "什么也不会",
+          url: "https://github.com/Huin2479",
           target: "_self"
         }
       ]
